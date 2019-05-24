@@ -1,0 +1,44 @@
+Battery:
+    chargeEfficiency: 0.95
+    dischargeEfficiency: 0.95
+    selfDischarge: 0.002
+    ratioE2P: 2
+    initialBatteryCapacity: 0
+    size: 4
+    totalbatteryCycles: 8000
+    replacementCostFactor: 0.25
+
+PV:
+    size: 9
+    irradiation: 1253
+    performanceRatio: 0.84
+    gamma: 0.9
+
+
+Policy:
+    fixedFIT: 0.123
+    flatRateElectricityTariff: 0.29
+    electricityWholesale: 0.0563
+    taxes: 0.0371
+    componentLevyFIT: 0.0768
+    isCapacity: False
+    isRTP: False
+    isVFIT: False
+    capacityCase:
+        networkCharge: 0
+        fixedCapacity: 204
+    volumetricCase:
+        networkCharge: 0.0569
+        fixedCapacity: 66
+
+Economics:
+    discount: 0.05
+    lifetime: 20
+    invest_PV: 1280
+    invest_Bat: 1300
+    oAndM_PV: 0.01
+    oAndM_Bat: 0.02
+    VAT: 1.19
+    scalingFactorPV: -0.063
+    scalingFactorBattery: -0.153
+    optimizationForesightHours: 24
