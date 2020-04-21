@@ -9,7 +9,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-This model depends on the packages Numpy and Pandas for data wrangling and [Gurobi](https://www.gurobi.com/documentation/8.0/quickstart_windows/py_python_interface) python package for optimization. Gurobi offers a free license for Academic use.  
+This model depends on Python >3.5, the packages Numpy and Pandas for data wrangling and [Gurobi](https://www.gurobi.com/documentation/8.0/quickstart_windows/py_python_interface) python package for optimization. Gurobi offers a free license for Academic use.  
 
 
 ### Sample Usage
@@ -70,7 +70,7 @@ Additional parameters can be computed such as **MAI**, **IRR**, etc.. The **MAI*
  
 ## Contributing
 
-Please contact us via email to m.klein@dlr.de.
+Please contact us via email to martinklein@posteo.de.
 
 
 ## Authors
