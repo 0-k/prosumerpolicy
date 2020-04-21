@@ -1,7 +1,6 @@
 # Prosumer Policy
 
-This project aims to model the optimum dispatch behaviour of households with PV and battery systems under different policy instrument mixes. Household electricity consumers with photovoltaics and battery systems are referred to as prosumers since they both produce and consume electricity. This model uses the Gurobi optimizer (plans on adding more soon, contact us if you want to have more interfaces) to determine the optimal household charging behaviour under different policies such as real-time electricity pricing schemes, time varying remunerations schemes and fixed network charges.
-
+This project aims to model the optimum dispatch behaviour of households with PV and battery systems under different policy instrument mixes. Household electricity consumers with photovoltaics and battery systems are referred to as prosumers since they both produce and consume electricity. This model uses the Gurobi optimizer (plans on adding more soon, contact us if you want to have more interfaces) to determine the optimal household charging behaviour under different policies such as real-time electricity pricing schemes, time varying remunerations schemes and fixed network charges. For the full scientific documentation, please refer to this paper: [Aligning prosumers with the electricity wholesale market – The impact of time-varying price signals and fixed network charges on solar self-consumption](https://www.sciencedirect.com/science/article/abs/pii/S0301421519304793)
 
 ## Getting Started
 
@@ -82,6 +81,9 @@ Please contact us via email to martinklein@posteo.de.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+If you are using this project, please cite as: 
+
+Klein, M., Ziade, A. and De Vries, L., 2019. Aligning prosumers with the electricity wholesale market–The impact of time-varying price signals and fixed network charges on solar self-consumption. Energy Policy, 134, p.110901. DOI: 10.1016/j.enpol.2019.110901 
 
 ## Acknowledgments
 
