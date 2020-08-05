@@ -1,14 +1,14 @@
 # Prosumer Policy
 
-This project aims to model the optimum dispatch behaviour of households with PV and battery systems under different policy instrument mixes. Household electricity consumers with photovoltaics and battery systems are referred to as prosumers since they both produce and consume electricity. This model uses the Gurobi optimizer (plans on adding more soon, contact us if you want to have more interfaces) to determine the optimal household charging behaviour under different policies such as real-time electricity pricing schemes, time varying remunerations schemes and fixed network charges. For the full scientific documentation, please refer to this paper: [Aligning prosumers with the electricity wholesale market – The impact of time-varying price signals and fixed network charges on solar self-consumption](https://www.sciencedirect.com/science/article/abs/pii/S0301421519304793)
+This project aims to model the optimum dispatch behaviour of households with PV and battery systems under different policy instrument mixes. Household electricity consumers with photovoltaics and battery systems are referred to as prosumers since they both produce and consume electricity. This model uses the Gurobi optimizer (plans on adding more soon, contact us if you want to have more interfaces) to determine the optimal household charging behaviour under different policies such as real-time electricity pricing schemes, time varying remunerations schemes and fixed network charges. For the full scientific documentation, please refer to this paper: [Aligning prosumers with the electricity wholesale market – The impact of time-varying price signals and fixed network charges on solar self-consumption](https://www.sciencedirect.com/science/article/abs/pii/S0301421519304793).
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. 
 
 ### Prerequisites
 
-This model depends on Python >3.5, the packages Numpy and Pandas for data wrangling and [Gurobi](https://www.gurobi.com/documentation/8.0/quickstart_windows/py_python_interface) python package for optimization. Gurobi offers a free license for Academic use.  
+This model depends on Python >3.5, the packages Numpy and Pandas for data wrangling and [Gurobi](https://www.gurobi.com/documentation/9.0/quickstart_mac/py_python_interface.html) python package for optimization. Gurobi offers a free license for Academic use.  
 
 
 ### Sample Usage
