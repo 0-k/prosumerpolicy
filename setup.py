@@ -12,5 +12,5 @@ setup(name='prosumerPolicy',
       author=['Ahmad Ziade','Martin Klein'],
       license='MIT',
       packages=['prosumerPolicy'],
-      install_requires=['pandas','numpy','gurobi']
+      install_requires=['pandas','numpy','gurobipy']
       )
