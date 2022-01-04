@@ -1,8 +1,6 @@
-from __future__ import print_function
-import logging
-
 from paths import *
 import pandas as pd
+import logging
 
 
 __all__=['import_Load', 'import_PV', 'import_Prices']

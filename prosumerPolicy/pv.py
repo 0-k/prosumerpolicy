@@ -1,8 +1,7 @@
 import logging
-
-from pandas import DataFrame
 from input import import_PV
 from paths import *
+
 
 class PV:
     def __init__(self, path=None):

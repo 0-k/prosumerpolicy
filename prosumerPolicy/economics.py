@@ -1,34 +1,22 @@
-import logging
-import warnings
 import math
-
-
 import numpy as np
-
 from paths import *
-from optimize import _Optimize
-from inputSetter import _InputSetter
-from policy import Policy
 
 
-
-class Economic:
+class Economics:
 
     def __init__(self,input,policy,optimize):
         self.__InputSetter = input
         self.__Policy = policy
         self.__Optimize = optimize
-
         self.PV = self.__InputSetter.PV
         self.Battery = self.__InputSetter.Battery
-
         self.__IRR = None
         self.__NPV = None
         self._autarky = None
         self._selfConsumption = None
         self._avoidedNetworkFees= None
         self._isOptimizeYear=False
-
         self._set_economic_parameters_from_file()
 
     def _set_economic_parameters_from_file(self, path=None):
@@ -54,7 +42,6 @@ class Economic:
         else:
             initialCostperKW = self._invest_PV * (self.PV.size / 10) ** self.__scalingFactorPV
         initialCostPV = self.PV.size * initialCostperKW
-
         return initialCostPV
 
     def __batteryInitialCost(self):
@@ -64,9 +51,7 @@ class Economic:
         else:
             initialCostperKW = self._invest_Bat * (self.Battery.size / 10) ** self.__scalingFactorBattery
         initialCostBattery = self.Battery.size * initialCostperKW
-
         return initialCostBattery
-
 
     def _calculateAvoidedNetworkFees(self):
         ''' calculates avoided network fees'''
@@ -84,10 +69,8 @@ class Economic:
             return avoidedNetworkFees
 
     def _calculateNPV(self, discount=None):
-
         if discount is None:
             discount = self.__discount
-
         PV = self.__pvInitialCost()
         Bat = self.__batteryInitialCost()
         cost = (-PV - Bat) * self.__VAT   #initial investment in year 0
@@ -97,7 +80,6 @@ class Economic:
         else:
             batteryYear = self.Battery.totalBatteryCycles / self.numOfCycles  # number of years to change battery.
             batteryYear = int(batteryYear)
-
         for year in range(1, int(self.__lifetime+1)):
             refYearCost = self.referenceTotal/math.pow(1.0+discount, year)
             if year == batteryYear:
@@ -107,7 +89,6 @@ class Economic:
                 yearCost = self.revenueTotal - self.__oAndM_PV * PV - self.__oAndM_Bat * Bat
             yearCost = yearCost/math.pow(1.0 + discount, year)
             cost += yearCost-refYearCost
-
         return cost
 
     def _calculateIRR(self):
@@ -118,7 +99,6 @@ class Economic:
         threshold = 0.5
         solDelta = 100 * threshold
         validRun = False
-
         for i in range(100):
             try:
                 x2 = x1 - (x1 - x0) / (self._calculateNPV(discount=x1) -
@@ -149,7 +129,6 @@ class Economic:
             if z >= 2 * self.Battery.size:
                 z = z - 2 * self.Battery.size
                 numOfCycles += 1
-
         return numOfCycles
 
     def _calculate_CSC(self): #charging State Correlator
@@ -163,14 +142,12 @@ class Economic:
             self.optimizeYear()
         arbitrageCharging = self._calculate_battery_state(self.__Optimize.energyStorageArbitrage)
         optimizeCharging = self._calculate_battery_state(self.energyStorage)
-
         logging.info(
             'System Friendliness Indicator for Arbitrage and {} calculated '.format(self.__Optimize.optimizationState))
         assert len(arbitrageCharging) == len(optimizeCharging)
         diff = 1 - sum(
             (arbitrageCharging[i] - optimizeCharging[i]) ** 2 for i in range(len(arbitrageCharging))) / (
                        2 * len(arbitrageCharging))
-
         self.__InputSetter.timeDuration = time
         self.__InputSetter.day=day
         return diff
@@ -238,7 +215,6 @@ class Economic:
                 self.welfareConsumption-=np.dot(self.__InputSetter.loadList, self.__InputSetter.get_price_list())
                 self.welfareBatteryPV+=-np.dot(self.__Optimize.sumEnergyFromGrid,self.__InputSetter.get_price_list())+\
                 np.dot(self.__Optimize.sumEnergyToGrid, self.__InputSetter.get_price_list())
-
             self.energyStorage=self.batteryTotal
         self.numOfCycles=self._calculate_battery_counts()
         self.revenueTotal-=self.__Policy.fixedCapacity
@@ -250,15 +226,12 @@ class Economic:
         stateDiff = np.diff(energyStorage)
         for i in range(len(stateDiff)):
             stateDiff[i] = round(stateDiff[i], 3)
-
             if stateDiff[i] > 0:
                 stateDiff[i] = 1
-
             elif stateDiff[i] < -self.Battery.selfDischarge * self.Battery.size * 1.05:
                 stateDiff[i] = -1
             else:
                 stateDiff[i] = 0
-
         return stateDiff
 
 

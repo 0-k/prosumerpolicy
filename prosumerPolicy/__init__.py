@@ -2,6 +2,6 @@ import paths
 import pv
 import battery
 import model
-import economic
+import economics
 import policy
 import inputSetter

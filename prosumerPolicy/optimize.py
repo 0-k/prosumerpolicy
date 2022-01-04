@@ -12,7 +12,7 @@ from policy import Policy
 pd.set_option('display.expand_frame_repr', False)
 
 
-class _Optimize:
+class _Optimization:
 
     def __init__(self, InputSetter, Policy):
         self.__InputSetter = InputSetter
@@ -24,18 +24,14 @@ class _Optimize:
             pass
         else:
             self.__Policy.isRTP = rtp
-
         if vfit is None:
             pass
-
         else:
             self.__Policy.isVFIT = vfit
-
         if capacity is None:
             pass
         else:
             self.__Policy.isFixedNetworkCharges = capacity
-
         if not self.__Policy.isRTP and not self.__Policy.isVFIT:
             return self.__BAU()
         else:
@@ -52,7 +48,6 @@ class _Optimize:
             Complete foresight, linear optimization done with GUROBI SOLVER
 
             '''
-
         self.arbitrageState = True
         model = Model("Arbitrage")  # Create Gurobi Model
         prices = self.__InputSetter.priceList

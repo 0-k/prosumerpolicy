@@ -1,8 +1,3 @@
-import logging
-
-import pandas as pd
-from pandas import DataFrame
-
 from paths import *
 
 
