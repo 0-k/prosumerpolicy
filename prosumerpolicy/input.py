@@ -3,17 +3,18 @@ import pandas as pd
 import logging
 
 
-__all__=['import_Load', 'import_PV', 'import_Prices']
+__all__ = ["import_Load", "import_PV", "import_Prices"]
 
 
 def import_Load(path=path_Load):
     try:
         absPath = gen_Path(path_Load)
-        totalload = pd.read_csv(absPath, header=None, delimiter=';')
+        totalload = pd.read_csv(absPath, header=None, delimiter=";")
         logging.info("Load Successfully Imported from {}".format(path_Load))
         return totalload
     except:
         logging.WARNING("Load Input from {} Error".format(path_Load))
+
 
 def import_PV(path=path_PvGen):
     try:
@@ -24,10 +25,11 @@ def import_PV(path=path_PvGen):
     except:
         logging.WARNING("Pv Gen Input from {} Error".format(path_PvGen))
 
+
 def import_Prices(path=path_Prices):
     try:
         absPath = gen_Path(path_Prices)
-        totalPrices = pd.read_csv(absPath, sep=';')
+        totalPrices = pd.read_csv(absPath, sep=";")
         logging.info("Prices Successfully Imported from {}".format(path_Prices))
         return totalPrices
     except:
