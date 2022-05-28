@@ -20,7 +20,7 @@ class Policy:
         self._set_policy_parameters_from_file(path)
         self.__c = self._calculate_electricity_constant()
         self.__alpha = self._calculate_eeg_ratio()
-        #self.__beta = self._calculate_feedIn_ratio()
+        # self.__beta = self._calculate_feedIn_ratio()
 
     def _set_policy_parameters_from_file(self, path=None):
         """update attributes from file"""
@@ -28,41 +28,41 @@ class Policy:
             path = gen_path(path_parameters)
         self.__parameters = read_parameters(path)
         logging.info("Loaded Policy config Set From {}".format(path))
-        parameters_Policy = self.__parameters["Policy"]
-        parameters_Economic = self.__parameters["Economics"]
-        self.fixedFIT = float(parameters_Policy["fixedFIT"])  # eur/kwh
+        parameters_Policy = self.__parameters["policy"]
+        parameters_Economic = self.__parameters["economics"]
+        self.fixedFIT = float(parameters_Policy["fixed_fit"])  # eur/kwh
         self.__flatRateElectricityTariff = float(
-            parameters_Policy["flatRateElectricityTariff"]
+            parameters_Policy["flat_rate_electricity_tariff"]
         )  # eur/kWh
         self.electricityWholesale = float(
-            parameters_Policy["electricityWholesale"]
+            parameters_Policy["electricity_wholesale"]
         )  # eur/kWh
         self.taxes = float(
             parameters_Policy["taxes"]
         )  # eur/KWh Konzessionsabgabe & Stromsteuer
-        self._componentLevyFIT = float(parameters_Policy["componentLevyFIT"])
+        self._componentLevyFIT = float(parameters_Policy["component_levy_fit"])
         if self._isFixedNetworkCharges:
             self.networkCharge = float(
-                parameters_Policy["capacityCase"]["networkCharge"]
+                parameters_Policy["capacity_case"]["network_charge"]
             )
             self.fixedCapacity = (
-                float(parameters_Policy["capacityCase"]["fixedCapacity"])
-                * parameters_Economic["VAT"]
+                float(parameters_Policy["capacity_case"]["fixed_capacity"])
+                * parameters_Economic["vat"]
             )
             logging.info("No Network Charges Imposed")
         else:
             self.networkCharge = float(
-                parameters_Policy["volumetricCase"]["networkCharge"]
+                parameters_Policy["volumetric_case"]["network_charge"]
             )  # ct per kWh
             self.fixedCapacity = (
-                float(parameters_Policy["volumetricCase"]["fixedCapacity"])
-                * parameters_Economic["VAT"]
+                float(parameters_Policy["volumetric_case"]["fixed_capacity"])
+                * parameters_Economic["vat"]
             )  # eur per KW per year
             logging.info("Volumetric Network Charges Imposed")
-        self.VAT = parameters_Economic["VAT"]
-        self.isRTP = bool(parameters_Policy["isRTP"])
-        self.isFixedNetworkCharges = bool(parameters_Policy["isCapacity"])
-        self.isVFIT = bool(parameters_Policy["isVFIT"])
+        self.VAT = parameters_Economic["vat"]
+        self.isRTP = bool(parameters_Policy["is_rtp"])
+        self.isFixedNetworkCharges = bool(parameters_Policy["is_capacity"])
+        self.isVFIT = bool(parameters_Policy["is_vfit"])
 
     def update_parameters(self, path=None):
         if path is None:
@@ -109,7 +109,9 @@ class Policy:
         return self._calculate_retail_electricity_prices()
 
     def _calculate_electricity_constant(self):
-        totalAvgLoad = self._InputSetter.get_load_list(day=1, duration=8760, loadRow=-1)
+        totalAvgLoad = self._InputSetter.get_load_list(
+            day=1, duration=8760, load_row=-1
+        )
         totalPrice = self._InputSetter.get_price_list(day=1, duration=8760)
         c = (
             self.electricityWholesale * sum(totalAvgLoad)
@@ -120,7 +122,9 @@ class Policy:
         return c
 
     def _calculate_eeg_ratio(self):
-        totalAvgLoad = self._InputSetter.get_load_list(day=1, duration=8760, loadRow=-1)
+        totalAvgLoad = self._InputSetter.get_load_list(
+            day=1, duration=8760, load_row=-1
+        )
         totalPrice = self._InputSetter.get_price_list(day=1, duration=8760)
         c = self._calculate_electricity_constant()
         alpha = (
@@ -132,7 +136,7 @@ class Policy:
 
     def _calculate_feedIn_ratio(self):
         totalPrice = self._InputSetter.get_price_list(day=1, duration=8760)
-        totalPV = self._InputSetter.get_pvGen_list(day=1, duration=8760)
+        totalPV = self._InputSetter.get_pv_gen_list(day=1, duration=8760)
         c = self._calculate_electricity_constant()
 
         beta = self.fixedFIT * sum(totalPV) / (np.dot((totalPrice + c), totalPV))
@@ -147,13 +151,13 @@ class Policy:
             self.__FIT = np.array(self.__FIT)
 
         else:
-            self.__FIT = [self.fixedFIT] * self._InputSetter.timeDuration
+            self.__FIT = [self.fixedFIT] * self._InputSetter.time_duration
 
         return self.__FIT
 
     def _calculate_retail_electricity_prices(self):
         parameters = self.__parameters
-        parameters_Policy = parameters["Policy"]
+        parameters_Policy = parameters["policy"]
 
         if self.isVFIT and self.isRTP:
             self._componentLevyFIT = self.__alpha * (
@@ -162,20 +166,20 @@ class Policy:
 
         if self.isFixedNetworkCharges:
             self.networkCharge = float(
-                parameters_Policy["capacityCase"]["networkCharge"]
+                parameters_Policy["capacity_case"]["network_charge"]
             )
             self.fixedCapacity = (
-                float(parameters_Policy["capacityCase"]["fixedCapacity"])
-                * parameters["Economics"]["VAT"]
+                float(parameters_Policy["capacity_case"]["fixed_capacity"])
+                * parameters["economics"]["vat"]
             )
             logging.info("Capacity Network Charges Imposed")
         else:
             self.networkCharge = float(
-                parameters_Policy["volumetricCase"]["networkCharge"]
+                parameters_Policy["volumetric_case"]["network_charge"]
             )  # ct per kWh
             self.fixedCapacity = (
-                float(parameters_Policy["volumetricCase"]["fixedCapacity"])
-                * parameters["Economics"]["VAT"]
+                float(parameters_Policy["volumetric_case"]["fixed_capacity"])
+                * parameters["economics"]["vat"]
             )  # eur per KW per year
             logging.info("Volumetric Network Charges Imposed")
 
@@ -183,17 +187,17 @@ class Policy:
             self.electricityBasePrice = self._InputSetter.get_price_list() + self.__c
             logging.info(
                 "Real Time Pricing for Day {} and Time Duration {} Set ".format(
-                    self._InputSetter.day, self._InputSetter.timeDuration
+                    self._InputSetter.day, self._InputSetter.time_duration
                 )
             )
 
         else:
-            fixedPrices = [self.electricityWholesale] * self._InputSetter.timeDuration
+            fixedPrices = [self.electricityWholesale] * self._InputSetter.time_duration
             fixedPrices = np.array(fixedPrices)
             self.electricityBasePrice = fixedPrices
             logging.info(
                 "Constant Prices for day {} and Time Duration {}".format(
-                    self._InputSetter.day, self._InputSetter.timeDuration
+                    self._InputSetter.day, self._InputSetter.time_duration
                 )
             )
 
@@ -204,6 +208,6 @@ class Policy:
             + self.networkCharge
         )  # networkCharge is zero if case is capacity only
 
-        total *= parameters["Economics"]["VAT"]
+        total *= parameters["economics"]["vat"]
 
         return total

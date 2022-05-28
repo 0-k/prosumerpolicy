@@ -19,15 +19,15 @@ class Battery(object):
         """reads battery parameter from file in Path and updates attributes"""
         if path is None:
             path = gen_path(path_parameters)
-        parameters = read_parameters(path)["Battery"]
+        parameters = read_parameters(path)["battery"]
         self.size = int(parameters["size"])
-        self.charge_efficiency = float(parameters["chargeEfficiency"])
-        self.discharge_efficiency = float(parameters["dischargeEfficiency"])
-        self.self_discharge = float(parameters["selfDischarge"])
-        self.initial_battery_capacity = float(parameters["initialBatteryCapacity"])
-        self.ratio_e2p = float(parameters["ratioE2P"])
-        self.total_battery_cycles = int(parameters["totalbatteryCycles"])
-        self.replacement_cost_factor = float(parameters["replacementCostFactor"])
+        self.charge_efficiency = float(parameters["charge_efficiency"])
+        self.discharge_efficiency = float(parameters["discharge_efficiency"])
+        self.self_discharge = float(parameters["self_discharge"])
+        self.initial_battery_capacity = float(parameters["initial_battery_capacity"])
+        self.ratio_e2p = float(parameters["ratio_e2p"])
+        self.total_battery_cycles = int(parameters["battery_cycles"])
+        self.replacement_cost_factor = float(parameters["replacement_cost_factor"])
         self.maximum_charge_discharge_capacity = (
             self.__calculate_maximum_charge_discharge_capacity()
         )

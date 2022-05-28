@@ -37,42 +37,42 @@ class Model:
 
     @property
     def timeDuration(self):
-        return self.__input_setter.timeDuration
+        return self.__input_setter.time_duration
 
     @timeDuration.setter
     def timeDuration(self, t):
-        self.__input_setter.timeDuration = t
+        self.__input_setter.time_duration = t
         self._economics._is_optimize_year = False
 
     @property
     def avoidedNetworkFees(self):
-        return self._economics._calculateAvoidedNetworkFees()
+        return self._economics._calculate_avoided_network_fees()
 
     @property
     def CSC(self):
-        return self._economics._calculate_CSC()
+        return self._economics._calculate_csc()
 
     @property
     def NPV(self):
         if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
-            self._economics.optimizeYear()
-        return self._economics._calculateNPV()
+            self._economics.optimize_year()
+        return self._economics._calculate_npv()
 
     @property
     def IRR(self):
         if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
-            self._economics.optimizeYear()
-        return self._economics._calculateIRR()
+            self._economics.optimize_year()
+        return self._economics._calculate_irr()
 
     @property
     def pvGenList(self):
-        return self.__input_setter.pvGenList
+        return self.__input_setter.pv_gen_list
 
     @property
     def priceList(self):
-        return self.__input_setter.priceList
+        return self.__input_setter.price_list
 
     @property
     def loadList(self):
@@ -97,42 +97,42 @@ class Model:
     def selfConsumption(self):
         if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
-            self._economics.optimizeYear()
+            self._economics.optimize_year()
         if self.__optimization._optimization_status == 1:  # BAU
             return (
-                1 - sum(self.__optimization.energyToGridBAU) / self._economics.pvTotal
+                1 - sum(self.__optimization.energyToGridBAU) / self._economics.pv_total
             )
         else:
             return (
                 1
-                - (self._economics.fedin + max(sum(self._economics.deltaBattGrid), 0))
-                / self._economics.pvTotal
+                - (self._economics.fedin + max(sum(self._economics.delta_batt_grid), 0))
+                / self._economics.pv_total
             )
 
     @property
     def autarky(self):
         if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
-            self._economics.optimizeYear()
+            self._economics.optimize_year()
         if self.__optimization._optimization_status == 1:  # BAU
             return (
                 1
                 - sum(self.__optimization.energyFromGridBAU)
-                / self._economics.consumptionYear
+                / self._economics.consumption_year
             )
         else:
             return (
                 1
                 - (
-                    self._economics.fromGrid
-                    - min(sum(self._economics.deltaBattGrid), 0)
+                    self._economics.from_grid
+                    - min(sum(self._economics.delta_batt_grid), 0)
                 )
-                / self._economics.consumptionYear
+                / self._economics.consumption_year
             )
 
     @property
     def MAI(self):
-        return self._economics._calculate_MAI()
+        return self._economics._calculate_mai()
 
     @property
     def optimizationState(self):
@@ -140,7 +140,7 @@ class Model:
 
     @property
     def storageDispatch(self):
-        return np.array(self._economics.batteryTotal)
+        return np.array(self._economics.battery_total)
 
     @property
     def storageDispatchArbitrage(self):

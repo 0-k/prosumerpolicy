@@ -2,7 +2,8 @@ import os.path
 import logging
 import yaml
 
-""" paths.py: Sets the Paths of the input data """
+
+""" Sets the Paths of the input data """
 
 logging.basicConfig(
     filename="logger.log",
@@ -15,17 +16,17 @@ logging.disable(logging.CRITICAL)
 formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 
 
-path_Prices = "../data/market_data_2016.csv"  # Market Prices Paths
-path_Load = "../data/summed_load_profiles.csv"  # Consumption Load Profiles Path
-path_PvGen = "../data/generation_data.csv"  # PV Generation Path
+path_prices = "../data/market_data_2016.csv"  # Market Prices Paths
+path_load = "../data/summed_load_profiles.csv"  # Consumption Load Profiles Path
+path_pv_generation = "../data/generation_data.csv"  # PV Generation Path
 path_parameters = "../example/parameters.yaml"  # parameter Path
 
 
-def gen_path(PATH):
+def gen_path(path):
     scriptdir = os.path.dirname(
         os.path.abspath(__file__)
     )  # returns working directory of the current folder
-    path = os.path.join(scriptdir, PATH)
+    path = os.path.join(scriptdir, path)
     return str(path)
 
 

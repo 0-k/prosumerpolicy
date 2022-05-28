@@ -1,44 +1,44 @@
-Battery:
-    chargeEfficiency: 0.95
-    dischargeEfficiency: 0.95
-    selfDischarge: 0.002
-    ratioE2P: 2
-    initialBatteryCapacity: 0
+battery:
+    charge_efficiency: 0.95
+    discharge_efficiency: 0.95
+    self_discharge: 0.002
+    ratio_e2p: 2
+    initial_battery_capacity: 0
     size: 4
-    totalbatteryCycles: 8000
-    replacementCostFactor: 0.25
+    battery_cycles: 8000
+    replacement_cost_factor: 0.25
 
-PV:
+pv:
     size: 9
     irradiation: 1253
-    performanceRatio: 0.84
+    performance_ratio: 0.84
     gamma: 0.9
 
 
-Policy:
-    fixedFIT: 0.123
-    flatRateElectricityTariff: 0.29
-    electricityWholesale: 0.0563
+policy:
+    fixed_fit: 0.123
+    flat_rate_electricity_tariff: 0.29
+    electricity_wholesale: 0.0563
     taxes: 0.0371
-    componentLevyFIT: 0.0768
-    isCapacity: False
-    isRTP: False
-    isVFIT: False
-    capacityCase:
-        networkCharge: 0
-        fixedCapacity: 204
-    volumetricCase:
-        networkCharge: 0.0569
-        fixedCapacity: 66
+    component_levy_fit: 0.0768
+    is_capacity: False
+    is_rtp: False
+    is_vfit: False
+    capacity_case:
+        network_charge: 0
+        fixed_capacity: 204
+    volumetric_case:
+        network_charge: 0.0569
+        fixed_capacity: 66
 
-Economics:
+economics:
     discount: 0.05
     lifetime: 20
-    invest_PV: 1280
-    invest_Bat: 1300
-    oAndM_PV: 0.01
-    oAndM_Bat: 0.02
-    VAT: 1.19
-    scalingFactorPV: -0.063
-    scalingFactorBattery: -0.153
-    optimizationForesightHours: 24
+    invest_pv: 1280
+    invest_bat: 1300
+    o_and_m_pv: 0.01
+    o_and_m_bat: 0.02
+    vat: 1.19
+    scaling_factor_pv: -0.063
+    scaling_factor_battery: -0.153
+    optimization_foresight_hours: 24

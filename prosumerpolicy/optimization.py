@@ -42,8 +42,8 @@ class _Optimization:
         """
         self.arbitrageState = True
         model = Model("Arbitrage")  # Create Gurobi Model
-        prices = self._input.priceList
-        N = self._input.timeDuration
+        prices = self._input.price_list
+        N = self._input.time_duration
         model.setParam("OutputFlag", 0)
         e_charge, e_discharge, e_storage = {}, {}, {}  # Intialize Constraint Dictionary
         # All Efficiencies are taken with reference to the battery. if battery discharges 1kwh, this means it actually gives
@@ -142,7 +142,7 @@ class _Optimization:
         logging.info(
             "Business as Usual: Day {}, Time Duration {}, PV Size {} ".format(
                 self._input.day,
-                self._input.timeDuration,
+                self._input.time_duration,
                 self._input.pv.size,
             )
         )
@@ -154,7 +154,7 @@ class _Optimization:
             self.optimizationState = "BAU Volumetric"
 
         length = min(
-            len(self._input.pvGenList), len(self._input.loadList)
+            len(self._input.pv_gen_list), len(self._input.loadList)
         )  # in case the inputs  are not the same length, use the smaller.
         battState, energyFromGrid, energyToGrid, cases = (
             [],
@@ -162,9 +162,7 @@ class _Optimization:
             [],
             [],
         )  # Create Return Variables
-        xi = (
-                self._input.pvGenList[:length] - self._input.loadList[:length]
-        )
+        xi = self._input.pv_gen_list[:length] - self._input.loadList[:length]
         battStateATBeg = []
         # All Efficiencies are taken with reference to the battery. if battery discharges 1kwh, this means it actually gives
         # etaDischarge*1kwh to the grid...if battery charges by 1 kwh, this means it took 1kwh/etacharge from the grid/pv
@@ -232,8 +230,7 @@ class _Optimization:
                     )
                 else:
                     batteryState = (
-                        batteryState
-                        + item * self._input.battery.charge_efficiency
+                        batteryState + item * self._input.battery.charge_efficiency
                     )
                     EtoGrid = 0
 
@@ -246,7 +243,7 @@ class _Optimization:
             {
                 "Price": self._policy.retailElectricity,
                 "load (kW)": self._input.loadList,
-                "PV Generation": self._input.pvGenList,
+                "PV Generation": self._input.pv_gen_list,
                 "Battery State (kW)": battState,
                 "Energy from the grid (kW)": energyFromGrid,
                 "Energy into the grid (kW)": energyToGrid,
@@ -268,9 +265,9 @@ class _Optimization:
         energyFromGrid = np.array(energyFromGrid)
 
         revenue = (
-                np.dot(self._policy.FIT, energyToGrid)
-                - np.dot(self._policy.retailElectricity, energyFromGrid)
-                + self._policy.FIT[0] * batteryState
+            np.dot(self._policy.FIT, energyToGrid)
+            - np.dot(self._policy.retailElectricity, energyFromGrid)
+            + self._policy.FIT[0] * batteryState
         )
 
         self.energyToGridBAU = energyToGrid
@@ -280,7 +277,7 @@ class _Optimization:
         self.referenceRevenue = np.dot(
             -self._policy.retailElectricity, self._input.loadList
         )
-        self.directUse = self._input.pvGenList - energyToGrid
+        self.directUse = self._input.pv_gen_list - energyToGrid
         self.directUse = sum(self.directUse) - batteryState
 
         return ans
@@ -301,16 +298,16 @@ class _Optimization:
         logging.info(
             "Real Time Pricing Optimization: Day {}, Time Duration {}, PV Size {} ".format(
                 self._input.day,
-                self._input.timeDuration,
+                self._input.time_duration,
                 self._input.pv.size,
             )
         )  # Getting config
-        wholesalepri = self._input.priceList
+        wholesalepri = self._input.price_list
         pri = self._policy.retailElectricity
         load = self._input.loadList
-        PV = self._input.pvGenList
+        PV = self._input.pv_gen_list
         FeedIn = self._policy.FIT
-        optimization_duration = self._input.timeDuration
+        optimization_duration = self._input.time_duration
         model = Model("RTP_withForesight")  # Create Gurobi Model
         model.setParam("OutputFlag", 0)
         (
@@ -506,7 +503,7 @@ class _Optimization:
         self.energyStorage = BatteryState  # used for SFI
         self.revenue = (
             np.dot(self._policy.FIT, PVtoGrid)
-            + np.dot(self._input.priceList, BatttoGrid)
+            + np.dot(self._input.price_list, BatttoGrid)
             - np.dot(self._policy.retailElectricity, GridtoLoad)
             - np.dot(self._policy.retailElectricity, GridtoBatt)
         )

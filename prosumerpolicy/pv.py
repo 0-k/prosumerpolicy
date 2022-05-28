@@ -1,4 +1,4 @@
-#rom prosumerpolicy.input2 import import_PV
+# rom prosumerpolicy.input2 import import_PV
 from prosumerpolicy.paths import *
 
 
@@ -17,13 +17,13 @@ class PV:
         """reads PV parameter from file in Path and updates attributes"""
         if path is None:
             path = gen_path(path_parameters)
-        parameters = read_parameters(path)["PV"]
+        parameters = read_parameters(path)["pv"]
         self.size = parameters["size"]
         self.irradiation = parameters["irradiation"]
-        self.performance_ratio = parameters["performanceRatio"]
+        self.performance_ratio = parameters["performance_ratio"]
         self.gamma = parameters["gamma"]
         logging.info("PV config Set From {}".format(path))
-        #self._calculate_pv_generation()
+        # self._calculate_pv_generation()
 
     def update_parameters(self, path):
         if path is None:
@@ -35,7 +35,11 @@ class PV:
         """calculates PvGen based on PV __parameters"""
         logging.info("PV Generation for PV Size {} kW is calculated".format(self.size))
         return (
-                self.pv_profile * self.size * self.irradiation * self.gamma * self.performance_ratio
+            self.pv_profile
+            * self.size
+            * self.irradiation
+            * self.gamma
+            * self.performance_ratio
         )
 
     @property

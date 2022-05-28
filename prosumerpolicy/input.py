@@ -18,41 +18,43 @@ class _Input:
         self._day = day
         self.load_row = loadRow
 
-    def import_Load(self, path=path_Load):
+    def import_Load(self, path=path_load):
         try:
             absPath = gen_path(path)
             totalload = pd.read_csv(absPath, header=None, delimiter=";")
-            logging.info("Load Successfully Imported from {}".format(path_Load))
+            logging.info("Load Successfully Imported from {}".format(path_load))
             return totalload
         except:
-            logging.warning("Load Input from {} Error".format(path_Load))
+            logging.warning("Load Input from {} Error".format(path_load))
 
-    def import_PV(self, path=path_PvGen):
+    def import_PV(self, path=path_pv_generation):
         try:
             absPath = gen_path(path)
             totalPvGen = pd.read_csv(absPath, header=None)
             print(totalPvGen)
-            logging.info("PV Gen Successfully Imported from {}".format(path_PvGen))
+            logging.info(
+                "PV Gen Successfully Imported from {}".format(path_pv_generation)
+            )
             self.pv.pv_profile = totalPvGen
             return totalPvGen
         except:
-            logging.warning("Pv Gen Input from {} Error".format(path_PvGen))
+            logging.warning("Pv Gen Input from {} Error".format(path_pv_generation))
 
-    def import_prices(self, path=path_Prices):
+    def import_prices(self, path=path_prices):
         try:
             absPath = gen_path(path)
             totalPrices = pd.read_csv(absPath, sep=";")
-            logging.info("Prices Successfully Imported from {}".format(path_Prices))
+            logging.info("Prices Successfully Imported from {}".format(path_prices))
             return totalPrices
         except:
-            logging.warning("Price Input from {} Error ".format(path_Prices))
+            logging.warning("Price Input from {} Error ".format(path_prices))
 
     @property
-    def pvGenList(self):
-        return self.get_pvGen_list()
+    def pv_gen_list(self):
+        return self.get_pv_gen_list()
 
     @property
-    def priceList(self):
+    def price_list(self):
         return self.get_price_list()
 
     @property
@@ -60,11 +62,11 @@ class _Input:
         return self.get_load_list()
 
     @property
-    def timeDuration(self):
+    def time_duration(self):
         return self._time_duration
 
-    @timeDuration.setter
-    def timeDuration(self, value):
+    @time_duration.setter
+    def time_duration(self, value):
         self._time_duration = value
 
     @property
@@ -77,12 +79,12 @@ class _Input:
 
     @property
     def load_row(self):
-        return self.__loadRow
+        return self._load_row
 
     @load_row.setter
     def load_row(self, value):
         logging.info("Load Row Changed to {}".format(value))
-        self.__loadRow = value
+        self._load_row = value
 
     def get_price_list(self, day=None, duration=None):
         """returns price list as np.array for specified day and duration"""
@@ -90,56 +92,54 @@ class _Input:
             day = self.day
         """ returns price list as np.array for specified day and duration"""
         if duration is None:
-            duration = self.timeDuration
+            duration = self.time_duration
         if day is None or duration is None:
             raise ValueError("Please Specify a day and time series duration")
         try:
             hours = (day - 1) * 24
-            price = np.array(self.total_prices["Price"][hours: hours + duration])
+            price = np.array(self.total_prices["Price"][hours : hours + duration])
             if np.nan in price:
                 raise IOError
             return price / 1000  # in kWh
         except IOError:
-            logging.warning(
-                "Price list in day {} contains missing values ".format(day)
-            )
+            logging.warning("Price list in day {} contains missing values ".format(day))
 
-    def get_load_list(self, day=None, duration=None, loadRow=None):
+    def get_load_list(self, day=None, duration=None, load_row=None):
         if day is None:
             day = self.day
         if duration is None:
-            duration = self.timeDuration
-        if loadRow is None:
-            loadRow = self.load_row
-        if day is None or duration is None or loadRow is None:
+            duration = self.time_duration
+        if load_row is None:
+            load_row = self.load_row
+        if day is None or duration is None or load_row is None:
             raise ValueError("Please set day, duration and load Row")
 
         try:
-            if loadRow == -1:  ## LOAD ROW -1 gives average load row
+            if load_row == -1:  ## LOAD ROW -1 gives average load row
                 hours = (day - 1) * 24
-                load = np.array(self.total_average_load[:][hours: hours + duration])
+                load = np.array(self.total_average_load[:][hours : hours + duration])
                 if np.nan in load:
                     raise IOError
                 return load / 1000  # kWh
             else:
                 hours = (day - 1) * 24
-                load = np.array(self.total_load[loadRow][hours: hours + duration])
+                load = np.array(self.total_load[load_row][hours : hours + duration])
                 if np.nan in load:
                     raise IOError
                 return load / 1000  # kWh
         except IOError:
             logging.warning("Load list in day {} contains missing values".format(day))
 
-    def get_pvGen_list(self, day=None, duration=None):
+    def get_pv_gen_list(self, day=None, duration=None):
         if day is None:
             day = self.day
         if duration is None:
-            duration = self.timeDuration
+            duration = self.time_duration
         if day is None or duration is None:
             raise ValueError("Please Specify a day and time series duration")
         try:
             hours = (day - 1) * 24
-            result = np.array(self.pv._calculatedPvGen[0][hours: hours + duration])
+            result = np.array(self.pv._calculatedPvGen[0][hours : hours + duration])
             if np.nan in result:
                 raise IOError
             return result / 1000  # kW
