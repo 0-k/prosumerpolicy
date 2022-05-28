@@ -1,4 +1,3 @@
-from pandas import DataFrame
 import pandas as pd
 import numpy as np
 from gurobipy import *
@@ -7,25 +6,25 @@ pd.set_option("display.expand_frame_repr", False)
 
 
 class _Optimization:
-    def __init__(self, InputSetter, Policy):
-        self.__InputSetter = InputSetter
-        self.__Policy = Policy
-        self._optimizationStatus = None
+    def __init__(self, input, policy):
+        self._input = input
+        self._policy = policy
+        self._optimization_status = None
 
     def optimize(self, rtp=None, vfit=None, capacity=None):
         if rtp is None:
             pass
         else:
-            self.__Policy.isRTP = rtp
+            self._policy.is_rtp = rtp
         if vfit is None:
             pass
         else:
-            self.__Policy.isVFIT = vfit
+            self._policy.isVFIT = vfit
         if capacity is None:
             pass
         else:
-            self.__Policy.isFixedNetworkCharges = capacity
-        if not self.__Policy.isRTP and not self.__Policy.isVFIT:
+            self._policy.is_fixed_network_charges = capacity
+        if not self._policy.is_rtp and not self._policy.isVFIT:
             return self.__BAU()
         else:
             return self.__optimizerDispatch()
@@ -43,8 +42,8 @@ class _Optimization:
         """
         self.arbitrageState = True
         model = Model("Arbitrage")  # Create Gurobi Model
-        prices = self.__InputSetter.priceList
-        N = self.__InputSetter.timeDuration
+        prices = self._input.priceList
+        N = self._input.timeDuration
         model.setParam("OutputFlag", 0)
         e_charge, e_discharge, e_storage = {}, {}, {}  # Intialize Constraint Dictionary
         # All Efficiencies are taken with reference to the battery. if battery discharges 1kwh, this means it actually gives
@@ -55,21 +54,21 @@ class _Optimization:
             e_charge[j] = model.addVar(
                 vtype="C",
                 lb=0,
-                ub=self.__InputSetter.Battery.maximumChargeDischargeCapacity
-                / self.__InputSetter.Battery.chargeEfficiency,
+                ub=self._input.battery.maximum_charge_discharge_capacity
+                / self._input.battery.charge_efficiency,
                 name="ECharge[%s]" % j,
             )
             e_discharge[j] = model.addVar(
                 vtype="C",
                 lb=0,
-                ub=self.__InputSetter.Battery.maximumChargeDischargeCapacity
-                * self.__InputSetter.Battery.dischargeEfficiency,
+                ub=self._input.battery.maximum_charge_discharge_capacity
+                * self._input.battery.discharge_efficiency,
                 name="EDischarge[%s]" % j,
             )
             e_storage[j] = model.addVar(
                 vtype="C",
                 lb=0,
-                ub=self.__InputSetter.Battery.size,
+                ub=self._input.battery.size,
                 name="EStorage[%s]" % j,
             )
         model.update()
@@ -86,18 +85,18 @@ class _Optimization:
                 model.addConstr(
                     e_storage[i]
                     - 0
-                    * self.__InputSetter.Battery.size
-                    * (1 - self.__InputSetter.Battery.selfDischarge)
-                    - e_charge[i] * self.__InputSetter.Battery.chargeEfficiency
-                    + e_discharge[i] / self.__InputSetter.Battery.dischargeEfficiency
+                    * self._input.battery.size
+                    * (1 - self._input.battery.self_discharge)
+                    - e_charge[i] * self._input.battery.charge_efficiency
+                    + e_discharge[i] / self._input.battery.discharge_efficiency
                     == 0
                 )
             else:
                 model.addConstr(
                     e_storage[i]
-                    - e_storage[i - 1] * (1 - self.__InputSetter.Battery.selfDischarge)
-                    - e_charge[i] * self.__InputSetter.Battery.chargeEfficiency
-                    + e_discharge[i] / self.__InputSetter.Battery.dischargeEfficiency
+                    - e_storage[i - 1] * (1 - self._input.battery.self_discharge)
+                    - e_charge[i] * self._input.battery.charge_efficiency
+                    + e_discharge[i] / self._input.battery.discharge_efficiency
                     == 0
                 )
         model.update()
@@ -118,7 +117,7 @@ class _Optimization:
         self.energyToGridArbitrage = np.array(eto_grid)
         self.energyFromGridArbitrage = np.array(efrom_grid)
 
-        ans = DataFrame(
+        ans = pd.DataFrame(
             {
                 "Prices": prices,
                 "Battery State (kW)": battery_state,
@@ -142,20 +141,20 @@ class _Optimization:
     def __BAU(self):
         logging.info(
             "Business as Usual: Day {}, Time Duration {}, PV Size {} ".format(
-                self.__InputSetter.day,
-                self.__InputSetter.timeDuration,
-                self.__InputSetter.PV.size,
+                self._input.day,
+                self._input.timeDuration,
+                self._input.pv.size,
             )
         )
-        self._optimizationStatus = 1
+        self._optimization_status = 1
 
-        if self.__Policy.isFixedNetworkCharges:
+        if self._policy.is_fixed_network_charges:
             self.optimizationState = "BAU Capacity"
         else:
             self.optimizationState = "BAU Volumetric"
 
         length = min(
-            len(self.__InputSetter.pvGenList), len(self.__InputSetter.loadList)
+            len(self._input.pvGenList), len(self._input.loadList)
         )  # in case the inputs  are not the same length, use the smaller.
         battState, energyFromGrid, energyToGrid, cases = (
             [],
@@ -164,49 +163,49 @@ class _Optimization:
             [],
         )  # Create Return Variables
         xi = (
-            self.__InputSetter.pvGenList[:length] - self.__InputSetter.loadList[:length]
+                self._input.pvGenList[:length] - self._input.loadList[:length]
         )
         battStateATBeg = []
         # All Efficiencies are taken with reference to the battery. if battery discharges 1kwh, this means it actually gives
         # etaDischarge*1kwh to the grid...if battery charges by 1 kwh, this means it took 1kwh/etacharge from the grid/pv
-        batteryState = self.__InputSetter.Battery.initialBatteryCapacity
+        batteryState = self._input.battery.initial_battery_capacity
         for item in xi:
-            battAtBeg = batteryState * (1 - self.__InputSetter.Battery.selfDischarge)
-            batteryState *= 1 - self.__InputSetter.Battery.selfDischarge
+            battAtBeg = batteryState * (1 - self._input.battery.self_discharge)
+            batteryState *= 1 - self._input.battery.self_discharge
             if item <= 0:
                 EtoGrid = 0
                 if (
                     abs(item)
                     <= min(
                         batteryState,
-                        self.__InputSetter.Battery.maximumChargeDischargeCapacity,
+                        self._input.battery.maximum_charge_discharge_capacity,
                     )
-                    * self.__InputSetter.Battery.dischargeEfficiency
+                    * self._input.battery.discharge_efficiency
                 ):
                     batteryState = batteryState - (
-                        abs(item) / self.__InputSetter.Battery.dischargeEfficiency
+                        abs(item) / self._input.battery.discharge_efficiency
                     )
                     EfromGrid = 0
                 elif (
                     abs(item)
                     > min(
                         batteryState,
-                        self.__InputSetter.Battery.maximumChargeDischargeCapacity,
+                        self._input.battery.maximum_charge_discharge_capacity,
                     )
-                    * self.__InputSetter.Battery.dischargeEfficiency
+                    * self._input.battery.discharge_efficiency
                 ):
                     EfromGrid = (
                         abs(item)
                         - min(
                             batteryState,
-                            self.__InputSetter.Battery.maximumChargeDischargeCapacity,
+                            self._input.battery.maximum_charge_discharge_capacity,
                         )
-                        * self.__InputSetter.Battery.dischargeEfficiency
+                        * self._input.battery.discharge_efficiency
                     )
                     batteryState = batteryState - (
                         min(
                             batteryState,
-                            self.__InputSetter.Battery.maximumChargeDischargeCapacity,
+                            self._input.battery.maximum_charge_discharge_capacity,
                         )
                     )
             else:
@@ -214,27 +213,27 @@ class _Optimization:
                 if (
                     item
                     >= min(
-                        (self.__InputSetter.Battery.size - batteryState),
-                        self.__InputSetter.Battery.maximumChargeDischargeCapacity,
+                        (self._input.battery.size - batteryState),
+                        self._input.battery.maximum_charge_discharge_capacity,
                     )
-                    / self.__InputSetter.Battery.chargeEfficiency
+                    / self._input.battery.charge_efficiency
                 ):
                     EtoGrid = (
                         item
                         - min(
-                            (self.__InputSetter.Battery.size - batteryState),
-                            self.__InputSetter.Battery.maximumChargeDischargeCapacity,
+                            (self._input.battery.size - batteryState),
+                            self._input.battery.maximum_charge_discharge_capacity,
                         )
-                        / self.__InputSetter.Battery.chargeEfficiency
+                        / self._input.battery.charge_efficiency
                     )
                     batteryState = batteryState + min(
-                        (self.__InputSetter.Battery.size - batteryState),
-                        self.__InputSetter.Battery.maximumChargeDischargeCapacity,
+                        (self._input.battery.size - batteryState),
+                        self._input.battery.maximum_charge_discharge_capacity,
                     )
                 else:
                     batteryState = (
                         batteryState
-                        + item * self.__InputSetter.Battery.chargeEfficiency
+                        + item * self._input.battery.charge_efficiency
                     )
                     EtoGrid = 0
 
@@ -243,18 +242,17 @@ class _Optimization:
             energyToGrid.append(EtoGrid)
             battStateATBeg.append(battAtBeg)
 
-        ans = DataFrame(
+        ans = pd.DataFrame(
             {
-                "Price": self.__Policy.retailElectricity,
-                "load (kW)": self.__InputSetter.loadList,
-                "PV Generation": self.__InputSetter.pvGenList,
+                "Price": self._policy.retailElectricity,
+                "load (kW)": self._input.loadList,
+                "PV Generation": self._input.pvGenList,
                 "Battery State (kW)": battState,
                 "Energy from the grid (kW)": energyFromGrid,
                 "Energy into the grid (kW)": energyToGrid,
                 "Bat at beg": battStateATBeg,
             },
         )
-        # ans = ans.round(2)
         ans = ans[
             [
                 "Price",
@@ -270,9 +268,9 @@ class _Optimization:
         energyFromGrid = np.array(energyFromGrid)
 
         revenue = (
-            np.dot(self.__Policy.FIT, energyToGrid)
-            - np.dot(self.__Policy.retailElectricity, energyFromGrid)
-            + self.__Policy.FIT[0] * batteryState
+                np.dot(self._policy.FIT, energyToGrid)
+                - np.dot(self._policy.retailElectricity, energyFromGrid)
+                + self._policy.FIT[0] * batteryState
         )
 
         self.energyToGridBAU = energyToGrid
@@ -280,40 +278,39 @@ class _Optimization:
         self.energyStorage = battState
         self.revenue = revenue
         self.referenceRevenue = np.dot(
-            -self.__Policy.retailElectricity, self.__InputSetter.loadList
+            -self._policy.retailElectricity, self._input.loadList
         )
-        self.directUse = self.__InputSetter.pvGenList - energyToGrid
+        self.directUse = self._input.pvGenList - energyToGrid
         self.directUse = sum(self.directUse) - batteryState
 
         return ans
 
     def __optimizerDispatch(self):
-        self._optimizationStatus = 2
-        if self.__Policy.isFixedNetworkCharges:
+        self._optimization_status = 2
+        if self._policy.is_fixed_network_charges:
             capacity = " Capacity"
         else:
             capacity = " Volumetric"
 
-        if self.__Policy.isRTP and not self.__Policy.isVFIT:
+        if self._policy.is_rtp and not self._policy.isVFIT:
             self.optimizationState = "RTP and Fixed FIT" + capacity
-        elif self.__Policy.isRTP and self.__Policy.isVFIT:
+        elif self._policy.is_rtp and self._policy.isVFIT:
             self.optimizationState = "RTP and Variable FIT" + capacity
-        elif not self.__Policy.isRTP and self.__Policy.isVFIT:
+        elif not self._policy.is_rtp and self._policy.isVFIT:
             self.optimizationState = "Fixed Price and Variable FIT" + capacity
         logging.info(
             "Real Time Pricing Optimization: Day {}, Time Duration {}, PV Size {} ".format(
-                self.__InputSetter.day,
-                self.__InputSetter.timeDuration,
-                self.__InputSetter.PV.size,
+                self._input.day,
+                self._input.timeDuration,
+                self._input.pv.size,
             )
-        )
-        # Getting config
-        wholesalepri = self.__InputSetter.priceList
-        pri = self.__Policy.retailElectricity
-        load = self.__InputSetter.loadList
-        PV = self.__InputSetter.pvGenList
-        FeedIn = self.__Policy.FIT
-        optimization_duration = self.__InputSetter.timeDuration
+        )  # Getting config
+        wholesalepri = self._input.priceList
+        pri = self._policy.retailElectricity
+        load = self._input.loadList
+        PV = self._input.pvGenList
+        FeedIn = self._policy.FIT
+        optimization_duration = self._input.timeDuration
         model = Model("RTP_withForesight")  # Create Gurobi Model
         model.setParam("OutputFlag", 0)
         (
@@ -334,7 +331,7 @@ class _Optimization:
             {},
             {},
             {},
-        )  # Intialize Constraint Dictionary
+        )  # Initialize Constraint Dictionary
         y = {}
         """ All Efficiencies are taken with reference to the battery. if battery discharges 1kwh,
          this means it actually gives etaDischarge*1kwh to the grid...if battery charges by 1 kwh, this means it
@@ -348,15 +345,15 @@ class _Optimization:
             ePVtoBatt[j] = model.addVar(
                 vtype="C",
                 lb=0,
-                ub=self.__InputSetter.Battery.maximumChargeDischargeCapacity
-                / self.__InputSetter.Battery.chargeEfficiency,
+                ub=self._input.battery.maximum_charge_discharge_capacity
+                / self._input.battery.charge_efficiency,
                 name="ePVtoBatt[%s]" % j,
             )
             eBatttoLoad[j] = model.addVar(
                 vtype="C",
                 lb=0,
-                ub=self.__InputSetter.Battery.maximumChargeDischargeCapacity
-                * self.__InputSetter.Battery.dischargeEfficiency,
+                ub=self._input.battery.maximum_charge_discharge_capacity
+                * self._input.battery.discharge_efficiency,
                 name="eBatttoLoad[%s]" % j,
             )
             ePVtoLoad[j] = model.addVar(vtype="C", lb=0, name="ePVtoLoad[%s]" % j)
@@ -364,21 +361,21 @@ class _Optimization:
             eBatttoGrid[j] = model.addVar(
                 vtype="C",
                 lb=0,
-                ub=self.__InputSetter.Battery.maximumChargeDischargeCapacity
-                * self.__InputSetter.Battery.dischargeEfficiency,
+                ub=self._input.battery.maximum_charge_discharge_capacity
+                * self._input.battery.discharge_efficiency,
                 name="eBatttoGrid[%s]" % j,
             )
             eGridtoBatt[j] = model.addVar(
                 vtype="C",
                 lb=0,
-                ub=self.__InputSetter.Battery.maximumChargeDischargeCapacity
-                / self.__InputSetter.Battery.chargeEfficiency,
+                ub=self._input.battery.maximum_charge_discharge_capacity
+                / self._input.battery.charge_efficiency,
                 name="eGridtoBatt[%s]" % j,
             )
             eStorage[j] = model.addVar(
                 vtype="C",
                 lb=0,
-                ub=self.__InputSetter.Battery.size,
+                ub=self._input.battery.size,
                 name="eStorage[%s]" % j,
             )
             eGridtoLoad[j] = model.addVar(vtype="C", lb=0, name="eGridtoLoad[%s]" % j)
@@ -394,47 +391,44 @@ class _Optimization:
                 for j in range(optimization_duration)
             ),
             GRB.MAXIMIZE,
-        )
-
-        # set objective function maximizing revenue
-
+        )  # set objective function maximizing revenue
         for i in range(
             optimization_duration
         ):  # Adding energy constraints for length of optimization_duration
             if i == 0:  # intial value
                 model.addConstr(
                     eStorage[i]
-                    - self.__InputSetter.Battery.initialBatteryCapacity
-                    * (1 - self.__InputSetter.Battery.selfDischarge)
-                    - ePVtoBatt[i] * self.__InputSetter.Battery.chargeEfficiency
-                    - eGridtoBatt[i] * self.__InputSetter.Battery.chargeEfficiency
-                    + eBatttoLoad[i] / self.__InputSetter.Battery.dischargeEfficiency
-                    + eBatttoGrid[i] / self.__InputSetter.Battery.dischargeEfficiency
+                    - self._input.battery.initial_battery_capacity
+                    * (1 - self._input.battery.self_discharge)
+                    - ePVtoBatt[i] * self._input.battery.charge_efficiency
+                    - eGridtoBatt[i] * self._input.battery.charge_efficiency
+                    + eBatttoLoad[i] / self._input.battery.discharge_efficiency
+                    + eBatttoGrid[i] / self._input.battery.discharge_efficiency
                     == 0
                 )
             else:
                 model.addConstr(
                     eStorage[i]
-                    - eStorage[i - 1] * (1 - self.__InputSetter.Battery.selfDischarge)
-                    - ePVtoBatt[i] * self.__InputSetter.Battery.chargeEfficiency
-                    - eGridtoBatt[i] * self.__InputSetter.Battery.chargeEfficiency
-                    + eBatttoLoad[i] / self.__InputSetter.Battery.dischargeEfficiency
-                    + eBatttoGrid[i] / self.__InputSetter.Battery.dischargeEfficiency
+                    - eStorage[i - 1] * (1 - self._input.battery.self_discharge)
+                    - ePVtoBatt[i] * self._input.battery.charge_efficiency
+                    - eGridtoBatt[i] * self._input.battery.charge_efficiency
+                    + eBatttoLoad[i] / self._input.battery.discharge_efficiency
+                    + eBatttoGrid[i] / self._input.battery.discharge_efficiency
                     == 0
                 )
             model.addConstr(ePVtoLoad[i] + ePVtoBatt[i] + ePVtoGrid[i] == PV[i])
             model.addConstr(eGridtoLoad[i] + eBatttoLoad[i] + ePVtoLoad[i] == load[i])
             model.addConstr(
                 eBatttoGrid[i]
-                <= self.__InputSetter.Battery.maximumChargeDischargeCapacity
+                <= self._input.battery.maximum_charge_discharge_capacity
                 * y[i]
-                * self.__InputSetter.Battery.dischargeEfficiency
+                * self._input.battery.discharge_efficiency
             )
             model.addConstr(
                 eGridtoBatt[i]
-                <= self.__InputSetter.Battery.maximumChargeDischargeCapacity
+                <= self._input.battery.maximum_charge_discharge_capacity
                 * (1 - y[i])
-                / self.__InputSetter.Battery.chargeEfficiency
+                / self._input.battery.charge_efficiency
             )
 
         model.update()
@@ -447,7 +441,6 @@ class _Optimization:
             model.optimize()
             print(model.status)
         # #extracting optimization results. Pretty ugly
-
         (
             PVtoGrid,
             PVtoLoad,
@@ -512,10 +505,10 @@ class _Optimization:
 
         self.energyStorage = BatteryState  # used for SFI
         self.revenue = (
-            np.dot(self.__Policy.FIT, PVtoGrid)
-            + np.dot(self.__InputSetter.priceList, BatttoGrid)
-            - np.dot(self.__Policy.retailElectricity, GridtoLoad)
-            - np.dot(self.__Policy.retailElectricity, GridtoBatt)
+            np.dot(self._policy.FIT, PVtoGrid)
+            + np.dot(self._input.priceList, BatttoGrid)
+            - np.dot(self._policy.retailElectricity, GridtoLoad)
+            - np.dot(self._policy.retailElectricity, GridtoBatt)
         )
         self.sumEnergyFromGrid = np.array(GridtoLoad) + np.array(
             GridtoBatt
@@ -525,10 +518,8 @@ class _Optimization:
         self.PVtoGrid = sum(PVtoGrid)
         self.GridtoLoad = sum(GridtoLoad)
         self.referenceRevenue = np.dot(
-            -self.__Policy.retailElectricity, self.__InputSetter.loadList
+            -self._policy.retailElectricity, self._input.loadList
         )
-
-        # ans = ans.round(3)
         return (
             ans,
             model.objVal,

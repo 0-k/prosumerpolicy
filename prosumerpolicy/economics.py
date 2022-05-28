@@ -1,113 +1,114 @@
 import math
 import numpy as np
-from paths import *
+from prosumerpolicy.paths import *
+
 
 
 class Economics:
-    def __init__(self, input, policy, optimize):
-        self.__InputSetter = input
-        self.__Policy = policy
-        self.__Optimize = optimize
-        self.PV = self.__InputSetter.PV
-        self.Battery = self.__InputSetter.Battery
-        self.__IRR = None
-        self.__NPV = None
+    def __init__(self, input, policy, optimization):
+        self._input = input
+        self._policy = policy
+        self._optimization = optimization
+        self.pv = self._input.pv
+        self.battery = self._input.battery
+        self._irr = None
+        self._npv = None
         self._autarky = None
-        self._selfConsumption = None
-        self._avoidedNetworkFees = None
-        self._isOptimizeYear = False
+        self._self_consumption = None
+        self._avoided_network_fees = None
+        self._is_optimize_year = False
         self._set_economic_parameters_from_file()
 
     def _set_economic_parameters_from_file(self, path=None):
         """reads PV parameter from file in Path and updates attributes"""
         if path is None:
-            path = gen_Path(path_parameters)
+            path = gen_path(path_parameters)
         parameters = read_parameters(path)["Economics"]
-        self.__discount = float(parameters["discount"])
-        self.__lifetime = int(parameters["lifetime"])
+        self._discount = float(parameters["discount"])
+        self._lifetime = int(parameters["lifetime"])
         self._invest_PV = float(parameters["invest_PV"])
         self._invest_Bat = float(parameters["invest_Bat"])
-        self.__oAndM_PV = float(parameters["oAndM_PV"])
-        self.__oAndM_Bat = float(parameters["oAndM_Bat"])
-        self.__VAT = float(parameters["VAT"])
-        self.__scalingFactorPV = float(parameters["scalingFactorPV"])
-        self.__scalingFactorBattery = float(parameters["scalingFactorBattery"])
-        self.__optimizationForesightHours = int(
+        self._o_and_m_pv = float(parameters["oAndM_PV"])
+        self._o_and_m_bat = float(parameters["oAndM_Bat"])
+        self._vat = float(parameters["VAT"])
+        self._scaling_factor_pv = float(parameters["scalingFactorPV"])
+        self._scaling_factor_battery = float(parameters["scalingFactorBattery"])
+        self._optimization_foresight_hours = int(
             parameters["optimizationForesightHours"]
         )
 
     def __pvInitialCost(self):
         """Calculates initial cost of PV"""
-        if self.PV.size == 0:
-            initialCostperKW = 0
+        if self.pv.size == 0:
+            initial_cost_per_kw = 0
         else:
-            initialCostperKW = (
-                self._invest_PV * (self.PV.size / 10) ** self.__scalingFactorPV
+            initial_cost_per_kw = (
+                    self._invest_PV * (self.pv.size / 10) ** self._scaling_factor_pv
             )
-        initialCostPV = self.PV.size * initialCostperKW
-        return initialCostPV
+        initial_cost_pv = self.pv.size * initial_cost_per_kw
+        return initial_cost_pv
 
     def __batteryInitialCost(self):
         """Calculates initial cost of Battery"""
-        if self.Battery.size == 0:
-            initialCostperKW = 0
+        if self.battery.size == 0:
+            initial_cost_per_kw = 0
         else:
-            initialCostperKW = (
-                self._invest_Bat
-                * (self.Battery.size / 10) ** self.__scalingFactorBattery
+            initial_cost_per_kw = (
+                    self._invest_Bat
+                    * (self.battery.size / 10) ** self._scaling_factor_battery
             )
-        initialCostBattery = self.Battery.size * initialCostperKW
-        return initialCostBattery
+        initial_cost_battery = self.battery.size * initial_cost_per_kw
+        return initial_cost_battery
 
     def _calculateAvoidedNetworkFees(self):
         """calculates avoided network fees"""
         if (
-            self.__Policy.isFixedNetworkCharges
+            self._policy.is_fixed_network_charges
         ):  # all capacity-based network charges are conserved
-            avoidedNetworkFees = 0
-            return avoidedNetworkFees
+            avoided_network_fees = 0
+            return avoided_network_fees
 
-        elif self.__Optimize._optimizationStatus == 1:  # BAU #TODO Enums
-            selfProduced = (
-                self.__InputSetter.loadList - self.__Optimize.energyFromGridBAU
+        elif self._optimization._optimization_status == 1:  # BAU #TODO Enums
+            self_produced = (
+                    self._input.loadList - self._optimization.energyFromGridBAU
             )
-            avoidedNetworkFees = sum(selfProduced) * self.__Policy.networkCharge
-            return avoidedNetworkFees
-        elif self.__Optimize._optimizationStatus == 2:  # Non-BAU
-            selfProduced = (
-                self.__InputSetter.loadList - self.__Optimize.sumEnergyFromGrid
+            avoided_network_fees = sum(self_produced) * self._policy.networkCharge
+            return avoided_network_fees
+        elif self._optimization._optimization_status == 2:  # Non-BAU
+            self_produced = (
+                    self._input.loadList - self._optimization.sumEnergyFromGrid
             )
-            avoidedNetworkFees = sum(selfProduced) * self.__Policy.networkCharge
-            return avoidedNetworkFees
+            avoided_network_fees = sum(self_produced) * self._policy.networkCharge
+            return avoided_network_fees
 
     def _calculateNPV(self, discount=None):
         if discount is None:
-            discount = self.__discount
+            discount = self._discount
         PV = self.__pvInitialCost()
         Bat = self.__batteryInitialCost()
-        cost = (-PV - Bat) * self.__VAT  # initial investment in year 0
+        cost = (-PV - Bat) * self._vat  # initial investment in year 0
         logging.info(
-            "Net Present Value for {} years calculated".format(self.__lifetime)
+            "Net Present Value for {} years calculated".format(self._lifetime)
         )
         if self.numOfCycles == 0:
             batteryYear = 100
         else:
             batteryYear = (
-                self.Battery.totalBatteryCycles / self.numOfCycles
+                    self.battery.total_battery_cycles / self.numOfCycles
             )  # number of years to change battery.
             batteryYear = int(batteryYear)
-        for year in range(1, int(self.__lifetime + 1)):
+        for year in range(1, int(self._lifetime + 1)):
             refYearCost = self.referenceTotal / math.pow(1.0 + discount, year)
             if year == batteryYear:
                 logging.warning("Battery is Changed")
                 yearCost = (
-                    self.revenueTotal
-                    - self.__oAndM_PV * PV
-                    - Bat * self.__VAT * self.Battery.replacementCostFactor
+                        self.revenueTotal
+                        - self._o_and_m_pv * PV
+                        - Bat * self._vat * self.battery.replacement_cost_factor
                 )
             else:
                 yearCost = (
-                    self.revenueTotal - self.__oAndM_PV * PV - self.__oAndM_Bat * Bat
+                        self.revenueTotal - self._o_and_m_pv * PV - self._o_and_m_bat * Bat
                 )
             yearCost = yearCost / math.pow(1.0 + discount, year)
             cost += yearCost - refYearCost
@@ -140,34 +141,34 @@ class Economics:
     def _calculate_battery_counts(self):
         """calculates battery counts"""
         tot = np.array(self.batteryTotal)
-        tot1 = np.insert(tot, 0, self.Battery.initialBatteryCapacity)
+        tot1 = np.insert(tot, 0, self.battery.initial_battery_capacity)
         tot1 = np.delete(tot1, -1)
         diff = tot - tot1
         numOfCycles = 0
         z = 0
         for i in diff:
             z += abs(i)
-            if z >= 2 * self.Battery.size:
-                z = z - 2 * self.Battery.size
+            if z >= 2 * self.battery.size:
+                z = z - 2 * self.battery.size
                 numOfCycles += 1
         return numOfCycles
 
     def _calculate_CSC(self):  # charging State Correlator
         """calculates system friendliness indicator. After optimization of existing case the arbitrage case is optimized for entire year"""
-        day = self.__InputSetter.day
-        self.__InputSetter.day = 1
-        time = self.__InputSetter.timeDuration
-        self.__InputSetter.timeDuration = 8760
-        self.__Optimize._optimize_arbitrage()
-        if not self._isOptimizeYear:
+        day = self._input.day
+        self._input.day = 1
+        time = self._input.timeDuration
+        self._input.timeDuration = 8760
+        self._optimization._optimize_arbitrage()
+        if not self._is_optimize_year:
             self.optimizeYear()
         arbitrageCharging = self._calculate_battery_state(
-            self.__Optimize.energyStorageArbitrage
+            self._optimization.energyStorageArbitrage
         )
         optimizeCharging = self._calculate_battery_state(self.energyStorage)
         logging.info(
             "System Friendliness Indicator for Arbitrage and {} calculated ".format(
-                self.__Optimize.optimizationState
+                self._optimization.optimizationState
             )
         )
         assert len(arbitrageCharging) == len(optimizeCharging)
@@ -175,28 +176,28 @@ class Economics:
             (arbitrageCharging[i] - optimizeCharging[i]) ** 2
             for i in range(len(arbitrageCharging))
         ) / (2 * len(arbitrageCharging))
-        self.__InputSetter.timeDuration = time
-        self.__InputSetter.day = day
+        self._input.timeDuration = time
+        self._input.day = day
         return diff
 
     def _calculate_MAI(self):
-        day = self.__InputSetter.day
-        self.__InputSetter.day = 1
-        time = self.__InputSetter.timeDuration
-        self.__InputSetter.timeDuration = 8760
-        self.__Optimize._optimize_arbitrage()
-        if not self._isOptimizeYear:
+        day = self._input.day
+        self._input.day = 1
+        time = self._input.timeDuration
+        self._input.timeDuration = 8760
+        self._optimization._optimize_arbitrage()
+        if not self._is_optimize_year:
             self.optimizeYear()
         self.welfareBattery = (
             self.welfareBatteryPV - self.welfarePV - self.welfareConsumption
         )
         self.welfareRef = np.dot(
-            self.__Optimize.energyToGridArbitrage
-            - self.__Optimize.energyFromGridArbitrage,
-            self.__InputSetter.get_price_list(day=1, duration=8760),
+            self._optimization.energyToGridArbitrage
+            - self._optimization.energyFromGridArbitrage,
+            self._input.get_price_list(day=1, duration=8760),
         )
-        self.__InputSetter.timeDuration = time
-        self.__InputSetter.day = day
+        self._input.timeDuration = time
+        self._input.day = day
         return self.welfareBattery / self.welfareRef
 
     def optimizeYear(self):
@@ -214,68 +215,68 @@ class Economics:
         self.welfarePV = 0
         self.welfareConsumption = 0
         self.welfareBatteryPV = 0
-        if not self.__Policy.isRTP and not self.__Policy.isVFIT:  # BAU Case
-            time = self.__InputSetter.timeDuration
-            self.__InputSetter.timeDuration = 8760
-            self.__Optimize.optimize()
-            self.revenueTotal = self.__Optimize.revenue
-            self.referenceTotal = self.__Optimize.referenceRevenue
+        if not self._policy.is_rtp and not self._policy.isVFIT:  # BAU Case
+            time = self._input.timeDuration
+            self._input.timeDuration = 8760
+            self._optimization.optimize()
+            self.revenueTotal = self._optimization.revenue
+            self.referenceTotal = self._optimization.referenceRevenue
             self.totalAvoidedNetworkFees = self._calculateAvoidedNetworkFees()
-            self.batteryTotal = self.__Optimize.energyStorage
-            self.pvTotal = sum(self.__InputSetter.pvGenList)
-            self.consumptionYear = sum(self.__InputSetter.loadList)
+            self.batteryTotal = self._optimization.energyStorage
+            self.pvTotal = sum(self._input.pvGenList)
+            self.consumptionYear = sum(self._input.loadList)
             self.welfarePV += np.dot(
-                self.__InputSetter.pvGenList, self.__InputSetter.get_price_list()
+                self._input.pvGenList, self._input.get_price_list()
             )
             self.welfareConsumption -= np.dot(
-                self.__InputSetter.loadList, self.__InputSetter.get_price_list()
+                self._input.loadList, self._input.get_price_list()
             )
             self.welfareBatteryPV += -np.dot(
-                self.__Optimize.energyFromGridBAU, self.__InputSetter.get_price_list()
+                self._optimization.energyFromGridBAU, self._input.get_price_list()
             ) + np.dot(
-                self.__Optimize.energyToGridBAU, self.__InputSetter.get_price_list()
+                self._optimization.energyToGridBAU, self._input.get_price_list()
             )
-            self.__InputSetter.timeDuration = time
+            self._input.timeDuration = time
         else:
             for d in range(1, 366):
-                self.__InputSetter.timeDuration = 24
-                self.__InputSetter.day = d
-                self.__Optimize.optimize()
-                self.deltaBattGrid.append(self.__Optimize.deltaBatt)
-                self.fedin += self.__Optimize.PVtoGrid
-                self.fromGrid += self.__Optimize.GridtoLoad
-                self.revenueTotal += self.__Optimize.revenue
-                self.referenceTotal += self.__Optimize.referenceRevenue
-                self.batteryTotal += self.__Optimize.energyStorage
+                self._input.timeDuration = 24
+                self._input.day = d
+                self._optimization.optimize()
+                self.deltaBattGrid.append(self._optimization.deltaBatt)
+                self.fedin += self._optimization.PVtoGrid
+                self.fromGrid += self._optimization.GridtoLoad
+                self.revenueTotal += self._optimization.revenue
+                self.referenceTotal += self._optimization.referenceRevenue
+                self.batteryTotal += self._optimization.energyStorage
                 self.totalAvoidedNetworkFees += self._calculateAvoidedNetworkFees()
-                self.pvTotal += sum(self.__InputSetter.pvGenList)
-                self.consumptionYear += sum(self.__InputSetter.loadList)
+                self.pvTotal += sum(self._input.pvGenList)
+                self.consumptionYear += sum(self._input.loadList)
                 self.welfarePV += np.dot(
-                    self.__InputSetter.pvGenList, self.__InputSetter.get_price_list()
+                    self._input.pvGenList, self._input.get_price_list()
                 )
                 self.welfareConsumption -= np.dot(
-                    self.__InputSetter.loadList, self.__InputSetter.get_price_list()
+                    self._input.loadList, self._input.get_price_list()
                 )
                 self.welfareBatteryPV += -np.dot(
-                    self.__Optimize.sumEnergyFromGrid,
-                    self.__InputSetter.get_price_list(),
+                    self._optimization.sumEnergyFromGrid,
+                    self._input.get_price_list(),
                 ) + np.dot(
-                    self.__Optimize.sumEnergyToGrid, self.__InputSetter.get_price_list()
+                    self._optimization.sumEnergyToGrid, self._input.get_price_list()
                 )
             self.energyStorage = self.batteryTotal
         self.numOfCycles = self._calculate_battery_counts()
-        self.revenueTotal -= self.__Policy.fixedCapacity
-        self.referenceTotal -= self.__Policy.fixedCapacity
+        self.revenueTotal -= self._policy.fixedCapacity
+        self.referenceTotal -= self._policy.fixedCapacity
 
     def _calculate_battery_state(self, energyStorage):
         energyStorage = np.array(energyStorage)
-        energyStorage = np.insert(energyStorage, 0, self.Battery.size)
+        energyStorage = np.insert(energyStorage, 0, self.battery.size)
         stateDiff = np.diff(energyStorage)
         for i in range(len(stateDiff)):
             stateDiff[i] = round(stateDiff[i], 3)
             if stateDiff[i] > 0:
                 stateDiff[i] = 1
-            elif stateDiff[i] < -self.Battery.selfDischarge * self.Battery.size * 1.05:
+            elif stateDiff[i] < -self.battery.self_discharge * self.battery.size * 1.05:
                 stateDiff[i] = -1
             else:
                 stateDiff[i] = 0

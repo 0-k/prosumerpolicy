@@ -1,34 +1,34 @@
-from paths import *
+from prosumerpolicy.paths import *
 
 
 class Battery(object):
     def __init__(self, path=None):
         """Sets parameter from default values"""
-        logging.info("PV config are set")
+        logging.info("battery config is set")
         self._size = None
-        self.chargeEfficiency = None
-        self.dischargeEfficiency = None
-        self.selfDischarge = None
-        self.initialBatteryCapacity = None
-        self._ratioE2P = None
-        self.maximumChargeDischargeCapacity = None
-        self.totalBatteryCycles = None
+        self.charge_efficiency = None
+        self.discharge_efficiency = None
+        self.self_discharge = None
+        self.initial_battery_capacity = None
+        self._ratio_e2p = None
+        self.maximum_charge_discharge_capacity = None
+        self.total_battery_cycles = None
         self._set_battery_parameters_from_file(path)
 
     def _set_battery_parameters_from_file(self, path=None):
         """reads battery parameter from file in Path and updates attributes"""
         if path is None:
-            path = gen_Path(path_parameters)
+            path = gen_path(path_parameters)
         parameters = read_parameters(path)["Battery"]
         self.size = int(parameters["size"])
-        self.chargeEfficiency = float(parameters["chargeEfficiency"])
-        self.dischargeEfficiency = float(parameters["dischargeEfficiency"])
-        self.selfDischarge = float(parameters["selfDischarge"])
-        self.initialBatteryCapacity = float(parameters["initialBatteryCapacity"])
-        self.ratioE2P = float(parameters["ratioE2P"])
-        self.totalBatteryCycles = int(parameters["totalbatteryCycles"])
-        self.replacementCostFactor = float(parameters["replacementCostFactor"])
-        self.maximumChargeDischargeCapacity = (
+        self.charge_efficiency = float(parameters["chargeEfficiency"])
+        self.discharge_efficiency = float(parameters["dischargeEfficiency"])
+        self.self_discharge = float(parameters["selfDischarge"])
+        self.initial_battery_capacity = float(parameters["initialBatteryCapacity"])
+        self.ratio_e2p = float(parameters["ratioE2P"])
+        self.total_battery_cycles = int(parameters["totalbatteryCycles"])
+        self.replacement_cost_factor = float(parameters["replacementCostFactor"])
+        self.maximum_charge_discharge_capacity = (
             self.__calculate_maximum_charge_discharge_capacity()
         )
 
@@ -39,15 +39,15 @@ class Battery(object):
             self._set_battery_parameters_from_file(path)
 
     @property
-    def ratioE2P(self):
+    def ratio_e2p(self):
         """battery E2P ratio"""
-        return self._ratioE2P
+        return self._ratio_e2p
 
-    @ratioE2P.setter
-    def ratioE2P(self, r):
-        assert r >= 0
-        self._ratioE2P = r
-        self.maximumChargeDischargeCapacity = (
+    @ratio_e2p.setter
+    def ratio_e2p(self, value):
+        assert value >= 0
+        self._ratio_e2p = value
+        self.maximum_charge_discharge_capacity = (
             self.__calculate_maximum_charge_discharge_capacity()
         )
 
@@ -56,13 +56,13 @@ class Battery(object):
         return self._size
 
     @size.setter
-    def size(self, m):
-        self._size = m
-        self.maximumChargeDischargeCapacity = (
+    def size(self, value):
+        self._size = value
+        self.maximum_charge_discharge_capacity = (
             self.__calculate_maximum_charge_discharge_capacity()
         )  # recalculates discharge and charge capacity
 
     def __calculate_maximum_charge_discharge_capacity(self):
-        if self._ratioE2P is None:
-            self._ratioE2P = 1
-        return self._size / self._ratioE2P
+        if self._ratio_e2p is None:
+            self._ratio_e2p = 1
+        return self._size / self._ratio_e2p

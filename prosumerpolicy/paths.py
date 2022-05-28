@@ -15,13 +15,13 @@ logging.disable(logging.CRITICAL)
 formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 
 
-path_Prices = "data/market_data_2016.csv"  # Market Prices Paths
-path_Load = "data/summed_load_profiles.csv"  # Consumption Load Profiles Path
-path_PvGen = "data/generation_data.csv"  # PV Generation Path
-path_parameters = "config/parameters.yaml"  # parameter Path
+path_Prices = "../data/market_data_2016.csv"  # Market Prices Paths
+path_Load = "../data/summed_load_profiles.csv"  # Consumption Load Profiles Path
+path_PvGen = "../data/generation_data.csv"  # PV Generation Path
+path_parameters = "../example/parameters.yaml"  # parameter Path
 
 
-def gen_Path(PATH):
+def gen_path(PATH):
     scriptdir = os.path.dirname(
         os.path.abspath(__file__)
     )  # returns working directory of the current folder

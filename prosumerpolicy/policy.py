@@ -1,5 +1,5 @@
 import numpy as np
-from paths import *
+from prosumerpolicy.paths import *
 
 
 class Policy:
@@ -20,12 +20,12 @@ class Policy:
         self._set_policy_parameters_from_file(path)
         self.__c = self._calculate_electricity_constant()
         self.__alpha = self._calculate_eeg_ratio()
-        self.__beta = self._calculate_feedIn_ratio()
+        #self.__beta = self._calculate_feedIn_ratio()
 
     def _set_policy_parameters_from_file(self, path=None):
         """update attributes from file"""
         if path is None:
-            path = gen_Path(path_parameters)
+            path = gen_path(path_parameters)
         self.__parameters = read_parameters(path)
         logging.info("Loaded Policy config Set From {}".format(path))
         parameters_Policy = self.__parameters["Policy"]

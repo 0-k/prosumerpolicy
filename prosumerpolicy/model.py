@@ -1,21 +1,21 @@
 import warnings
 import numpy as np
-from optimize import _Optimization
-from inputSetter import _InputSetter
-from economics import Economics
-from policy import Policy
+from prosumerpolicy.optimization import _Optimization
+from prosumerpolicy.input import _Input
+from prosumerpolicy.economics import Economics
+from prosumerpolicy.policy import Policy
 
 
 class Model:
     def __init__(self):
-        self.__input_setter = _InputSetter()
+        self.__input_setter = _Input()
         self.policy = Policy(self.__input_setter)
         self.__optimization = _Optimization(self.__input_setter, self.policy)
         self._economics = Economics(
             self.__input_setter, self.policy, self.__optimization
         )
-        self.PV = self.__input_setter.PV
-        self.Battery = self.__input_setter.Battery
+        self.PV = self.__input_setter.pv
+        self.Battery = self.__input_setter.battery
 
     @property
     def day(self):
@@ -24,16 +24,16 @@ class Model:
     @day.setter
     def day(self, d):
         self.__input_setter.day = d
-        self._economics._isOptimizeYear = False
+        self._economics._is_optimize_year = False
 
     @property
     def loadRow(self):
-        return self.__input_setter.loadRow
+        return self.__input_setter.load_row
 
     @loadRow.setter
     def loadRow(self, l):
-        self.__input_setter.loadRow = l
-        self._economics._isOptimizeYear = False
+        self.__input_setter.load_row = l
+        self._economics._is_optimize_year = False
 
     @property
     def timeDuration(self):
@@ -42,7 +42,7 @@ class Model:
     @timeDuration.setter
     def timeDuration(self, t):
         self.__input_setter.timeDuration = t
-        self._economics._isOptimizeYear = False
+        self._economics._is_optimize_year = False
 
     @property
     def avoidedNetworkFees(self):
@@ -54,14 +54,14 @@ class Model:
 
     @property
     def NPV(self):
-        if not self._economics._isOptimizeYear:
+        if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
             self._economics.optimizeYear()
         return self._economics._calculateNPV()
 
     @property
     def IRR(self):
-        if not self._economics._isOptimizeYear:
+        if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
             self._economics.optimizeYear()
         return self._economics._calculateIRR()
@@ -95,10 +95,10 @@ class Model:
 
     @property
     def selfConsumption(self):
-        if not self._economics._isOptimizeYear:
+        if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
             self._economics.optimizeYear()
-        if self.__optimization._optimizationStatus == 1:  # BAU
+        if self.__optimization._optimization_status == 1:  # BAU
             return (
                 1 - sum(self.__optimization.energyToGridBAU) / self._economics.pvTotal
             )
@@ -111,10 +111,10 @@ class Model:
 
     @property
     def autarky(self):
-        if not self._economics._isOptimizeYear:
+        if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
             self._economics.optimizeYear()
-        if self.__optimization._optimizationStatus == 1:  # BAU
+        if self.__optimization._optimization_status == 1:  # BAU
             return (
                 1
                 - sum(self.__optimization.energyFromGridBAU)
