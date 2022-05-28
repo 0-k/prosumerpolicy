@@ -68,12 +68,12 @@ class Economics:
             return avoided_network_fees
 
         elif self._optimization._optimization_status == 1:  # BAU #TODO Enums
-            self_produced = self._input.loadList - self._optimization.energyFromGridBAU
-            avoided_network_fees = sum(self_produced) * self._policy.networkCharge
+            self_produced = self._input.load_list - self._optimization.energy_from_grid_bau
+            avoided_network_fees = sum(self_produced) * self._policy.network_charge
             return avoided_network_fees
         elif self._optimization._optimization_status == 2:  # Non-BAU
-            self_produced = self._input.loadList - self._optimization.sumEnergyFromGrid
-            avoided_network_fees = sum(self_produced) * self._policy.networkCharge
+            self_produced = self._input.load_list - self._optimization.sum_energy_from_grid
+            avoided_network_fees = sum(self_produced) * self._policy.network_charge
             return avoided_network_fees
 
     def _calculate_npv(self, discount=None):
@@ -156,12 +156,12 @@ class Economics:
         if not self._is_optimize_year:
             self.optimize_year()
         arbitrage_charging = self._calculate_battery_state(
-            self._optimization.energyStorageArbitrage
+            self._optimization.energy_storage_arbitrage
         )
         optimize_charging = self._calculate_battery_state(self.energy_storage)
         logging.info(
             "System Friendliness Indicator for Arbitrage and {} calculated ".format(
-                self._optimization.optimizationState
+                self._optimization.optimization_state
             )
         )
         assert len(arbitrage_charging) == len(optimize_charging)
@@ -185,8 +185,8 @@ class Economics:
             self.welfare_battery_pv - self.welfare_pv - self.welfare_consumption
         )
         self.welfare_ref = np.dot(
-            self._optimization.energyToGridArbitrage
-            - self._optimization.energyFromGridArbitrage,
+            self._optimization.energy_to_grid_arbitrage
+            - self._optimization.energy_from_grid_arbitrage,
             self._input.get_price_list(day=1, duration=8760),
         )
         self._input.time_duration = time
@@ -208,58 +208,58 @@ class Economics:
         self.welfare_pv = 0
         self.welfare_consumption = 0
         self.welfare_battery_pv = 0
-        if not self._policy.is_rtp and not self._policy.isVFIT:  # BAU Case
+        if not self._policy.is_rtp and not self._policy.is_vfit:  # BAU Case
             time = self._input.time_duration
             self._input.time_duration = 8760
             self._optimization.optimize()
             self.revenue_total = self._optimization.revenue
-            self.reference_total = self._optimization.referenceRevenue
+            self.reference_total = self._optimization.reference_revenue
             self.total_avoided_network_fees = self._calculate_avoided_network_fees()
             self.battery_total = self._optimization.energy_storage
             self.pv_total = sum(self._input.pv_gen_list)
-            self.consumption_year = sum(self._input.loadList)
+            self.consumption_year = sum(self._input.load_list)
             self.welfare_pv += np.dot(
                 self._input.pv_gen_list, self._input.get_price_list()
             )
             self.welfare_consumption -= np.dot(
-                self._input.loadList, self._input.get_price_list()
+                self._input.load_list, self._input.get_price_list()
             )
             self.welfare_battery_pv += -np.dot(
-                self._optimization.energyFromGridBAU, self._input.get_price_list()
-            ) + np.dot(self._optimization.energyToGridBAU, self._input.get_price_list())
+                self._optimization.energy_from_grid_bau, self._input.get_price_list()
+            ) + np.dot(self._optimization.energy_to_grid_bau, self._input.get_price_list())
             self._input.time_duration = time
         else:
             for d in range(1, 366):
                 self._input.time_duration = 24
                 self._input.day = d
                 self._optimization.optimize()
-                self.delta_batt_grid.append(self._optimization.deltaBatt)
-                self.fedin += self._optimization.PVtoGrid
-                self.from_grid += self._optimization.GridtoLoad
+                self.delta_batt_grid.append(self._optimization.delta_batt)
+                self.fedin += self._optimization.pv_to_grid
+                self.from_grid += self._optimization.grid_to_load
                 self.revenue_total += self._optimization.revenue
-                self.reference_total += self._optimization.referenceRevenue
+                self.reference_total += self._optimization.reference_revenue
                 self.battery_total += self._optimization.energy_storage
                 self.total_avoided_network_fees += (
                     self._calculate_avoided_network_fees()
                 )
                 self.pv_total += sum(self._input.pv_gen_list)
-                self.consumption_year += sum(self._input.loadList)
+                self.consumption_year += sum(self._input.load_list)
                 self.welfare_pv += np.dot(
                     self._input.pv_gen_list, self._input.get_price_list()
                 )
                 self.welfare_consumption -= np.dot(
-                    self._input.loadList, self._input.get_price_list()
+                    self._input.load_list, self._input.get_price_list()
                 )
                 self.welfare_battery_pv += -np.dot(
-                    self._optimization.sumEnergyFromGrid,
+                    self._optimization.sum_energy_from_grid,
                     self._input.get_price_list(),
                 ) + np.dot(
-                    self._optimization.sumEnergyToGrid, self._input.get_price_list()
+                    self._optimization.sum_energy_to_grid, self._input.get_price_list()
                 )
             self.energy_storage = self.battery_total
         self.num_of_cycles = self._calculate_battery_counts()
-        self.revenue_total -= self._policy.fixedCapacity
-        self.reference_total -= self._policy.fixedCapacity
+        self.revenue_total -= self._policy.fixed_capacity
+        self.reference_total -= self._policy.fixed_capacity
 
     def _calculate_battery_state(self, energy_storage):
         energy_storage = np.array(energy_storage)

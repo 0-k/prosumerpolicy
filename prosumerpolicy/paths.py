@@ -11,7 +11,6 @@ logging.basicConfig(
     level=logging.CRITICAL,
     format=" %(asctime)s -  %(levelname)s-  %(message)s",
 )
-logging.disable(logging.CRITICAL)
 
 formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 
@@ -23,10 +22,10 @@ path_parameters = "../example/parameters.yaml"  # parameter Path
 
 
 def gen_path(path):
-    scriptdir = os.path.dirname(
+    script_dir = os.path.dirname(
         os.path.abspath(__file__)
     )  # returns working directory of the current folder
-    path = os.path.join(scriptdir, path)
+    path = os.path.join(script_dir, path)
     return str(path)
 
 

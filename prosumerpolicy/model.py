@@ -8,99 +8,99 @@ from prosumerpolicy.policy import Policy
 
 class Model:
     def __init__(self):
-        self.__input_setter = _Input()
-        self.policy = Policy(self.__input_setter)
-        self.__optimization = _Optimization(self.__input_setter, self.policy)
+        self._input_setter = _Input()
+        self.policy = Policy(self._input_setter)
+        self._optimization = _Optimization(self._input_setter, self.policy)
         self._economics = Economics(
-            self.__input_setter, self.policy, self.__optimization
+            self._input_setter, self.policy, self._optimization
         )
-        self.PV = self.__input_setter.pv
-        self.Battery = self.__input_setter.battery
+        self.pv = self._input_setter.pv
+        self.battery = self._input_setter.battery
 
     @property
     def day(self):
-        return self.__input_setter.day
+        return self._input_setter.day
 
     @day.setter
-    def day(self, d):
-        self.__input_setter.day = d
+    def day(self, value):
+        self._input_setter.day = value
         self._economics._is_optimize_year = False
 
     @property
-    def loadRow(self):
-        return self.__input_setter.load_row
+    def load_row(self):
+        return self._input_setter.load_row
 
-    @loadRow.setter
-    def loadRow(self, l):
-        self.__input_setter.load_row = l
+    @load_row.setter
+    def load_row(self, value):
+        self._input_setter.load_row = value
         self._economics._is_optimize_year = False
 
     @property
-    def timeDuration(self):
-        return self.__input_setter.time_duration
+    def time_duration(self):
+        return self._input_setter.time_duration
 
-    @timeDuration.setter
-    def timeDuration(self, t):
-        self.__input_setter.time_duration = t
+    @time_duration.setter
+    def time_duration(self, value):
+        self._input_setter.time_duration = value
         self._economics._is_optimize_year = False
 
     @property
-    def avoidedNetworkFees(self):
+    def avoided_network_fees(self):
         return self._economics._calculate_avoided_network_fees()
 
     @property
-    def CSC(self):
+    def csc(self):
         return self._economics._calculate_csc()
 
     @property
-    def NPV(self):
+    def npv(self):
         if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
             self._economics.optimize_year()
         return self._economics._calculate_npv()
 
     @property
-    def IRR(self):
+    def irr(self):
         if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
             self._economics.optimize_year()
         return self._economics._calculate_irr()
 
     @property
-    def pvGenList(self):
-        return self.__input_setter.pv_gen_list
+    def pv_gen_list(self):
+        return self._input_setter.pv_gen_list
 
     @property
-    def priceList(self):
-        return self.__input_setter.price_list
+    def price_list(self):
+        return self._input_setter.price_list
 
     @property
-    def loadList(self):
-        return self.__input_setter.loadList
+    def load_list(self):
+        return self._input_setter.load_list
 
     @property
     def opt(self):
-        if self.policy.isRTP or self.policy.isVFIT:
-            return self.__optimization.optimize()[0]
+        if self.policy.is_rtp or self.policy.is_vfit:
+            return self._optimization.optimize()[0]
         else:
-            return self.__optimization.optimize()
+            return self._optimization.optimize()
 
     @property
     def revenue(self):
-        if self.policy.isRTP or self.policy.isVFIT:
-            return self.__optimization.optimize()[1]
+        if self.policy.is_rtp or self.policy.is_vfit:
+            return self._optimization.optimize()[1]
         else:
-            self.__optimization.optimize()
-            return self.__optimization.revenue
+            self._optimization.optimize()
+            return self._optimization.revenue
 
     @property
-    def selfConsumption(self):
+    def self_consumption(self):
         if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
             self._economics.optimize_year()
-        if self.__optimization._optimization_status == 1:  # BAU
+        if self._optimization._optimization_status == 1:  # BAU
             return (
-                1 - sum(self.__optimization.energyToGridBAU) / self._economics.pv_total
+                    1 - sum(self._optimization.energy_to_grid_bau) / self._economics.pv_total
             )
         else:
             return (
@@ -114,10 +114,10 @@ class Model:
         if not self._economics._is_optimize_year:
             warnings.warn("Optimization for year automatically calculated")
             self._economics.optimize_year()
-        if self.__optimization._optimization_status == 1:  # BAU
+        if self._optimization._optimization_status == 1:  # BAU
             return (
                 1
-                - sum(self.__optimization.energyFromGridBAU)
+                - sum(self._optimization.energy_from_grid_bau)
                 / self._economics.consumption_year
             )
         else:
@@ -135,13 +135,13 @@ class Model:
         return self._economics._calculate_mai()
 
     @property
-    def optimizationState(self):
-        return self.__optimization.optimizationState
+    def optimization_state(self):
+        return self._optimization.optimization_state
 
     @property
-    def storageDispatch(self):
+    def storage_dispatch(self):
         return np.array(self._economics.battery_total)
 
     @property
-    def storageDispatchArbitrage(self):
-        return self.__optimization.energyStorageArbitrage
+    def storage_dispatch_arbitrage(self):
+        return self._optimization.energyStorageArbitrage

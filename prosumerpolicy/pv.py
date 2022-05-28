@@ -1,4 +1,3 @@
-# rom prosumerpolicy.input2 import import_PV
 from prosumerpolicy.paths import *
 
 
@@ -23,13 +22,9 @@ class PV:
         self.performance_ratio = parameters["performance_ratio"]
         self.gamma = parameters["gamma"]
         logging.info("PV config Set From {}".format(path))
-        # self._calculate_pv_generation()
 
     def update_parameters(self, path):
-        if path is None:
-            self._set_pv_parameters_from_file()
-        else:
-            self._set_pv_parameters_from_file(path)
+        self._set_pv_parameters_from_file(path)
 
     def _calculate_pv_generation(self):
         """calculates PvGen based on PV __parameters"""

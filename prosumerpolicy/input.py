@@ -58,7 +58,7 @@ class _Input:
         return self.get_price_list()
 
     @property
-    def loadList(self):
+    def load_list(self):
         return self.get_load_list()
 
     @property
