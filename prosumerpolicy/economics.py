@@ -68,11 +68,15 @@ class Economics:
             return avoided_network_fees
 
         elif self._optimization._optimization_status == 1:  # BAU #TODO Enums
-            self_produced = self._input.load_list - self._optimization.energy_from_grid_bau
+            self_produced = (
+                self._input.load_list - self._optimization.energy_from_grid_bau
+            )
             avoided_network_fees = sum(self_produced) * self._policy.network_charge
             return avoided_network_fees
         elif self._optimization._optimization_status == 2:  # Non-BAU
-            self_produced = self._input.load_list - self._optimization.sum_energy_from_grid
+            self_produced = (
+                self._input.load_list - self._optimization.sum_energy_from_grid
+            )
             avoided_network_fees = sum(self_produced) * self._policy.network_charge
             return avoided_network_fees
 
@@ -226,7 +230,9 @@ class Economics:
             )
             self.welfare_battery_pv += -np.dot(
                 self._optimization.energy_from_grid_bau, self._input.get_price_list()
-            ) + np.dot(self._optimization.energy_to_grid_bau, self._input.get_price_list())
+            ) + np.dot(
+                self._optimization.energy_to_grid_bau, self._input.get_price_list()
+            )
             self._input.time_duration = time
         else:
             for d in range(1, 366):

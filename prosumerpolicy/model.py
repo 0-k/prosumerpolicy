@@ -11,9 +11,7 @@ class Model:
         self._input_setter = _Input()
         self.policy = Policy(self._input_setter)
         self._optimization = _Optimization(self._input_setter, self.policy)
-        self._economics = Economics(
-            self._input_setter, self.policy, self._optimization
-        )
+        self._economics = Economics(self._input_setter, self.policy, self._optimization)
         self.pv = self._input_setter.pv
         self.battery = self._input_setter.battery
 
@@ -100,7 +98,8 @@ class Model:
             self._economics.optimize_year()
         if self._optimization._optimization_status == 1:  # BAU
             return (
-                    1 - sum(self._optimization.energy_to_grid_bau) / self._economics.pv_total
+                1
+                - sum(self._optimization.energy_to_grid_bau) / self._economics.pv_total
             )
         else:
             return (

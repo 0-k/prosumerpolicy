@@ -265,9 +265,9 @@ class _Optimization:
         energy_from_grid = np.array(energy_from_grid)
 
         revenue = (
-                np.dot(self._policy.fit, energy_to_grid)
-                - np.dot(self._policy.retail_electricity, energy_from_grid)
-                + self._policy.fit[0] * battery_state
+            np.dot(self._policy.fit, energy_to_grid)
+            - np.dot(self._policy.retail_electricity, energy_from_grid)
+            + self._policy.fit[0] * battery_state
         )
 
         self.energy_to_grid_bau = energy_to_grid
@@ -375,7 +375,9 @@ class _Optimization:
                 ub=self._input.battery.size,
                 name="e_storage[%s]" % j,
             )
-            e_grid_to_load[j] = model.addVar(vtype="C", lb=0, name="e_grid_to_load[%s]" % j)
+            e_grid_to_load[j] = model.addVar(
+                vtype="C", lb=0, name="e_grid_to_load[%s]" % j
+            )
 
         model.update()
 
@@ -413,8 +415,12 @@ class _Optimization:
                     + e_batt_to_grid[i] / self._input.battery.discharge_efficiency
                     == 0
                 )
-            model.addConstr(e_pv_to_load[i] + e_pv_to_batt[i] + e_pv_to_grid[i] == PV[i])
-            model.addConstr(e_grid_to_load[i] + e_batt_to_load[i] + e_pv_to_load[i] == load[i])
+            model.addConstr(
+                e_pv_to_load[i] + e_pv_to_batt[i] + e_pv_to_grid[i] == PV[i]
+            )
+            model.addConstr(
+                e_grid_to_load[i] + e_batt_to_load[i] + e_pv_to_load[i] == load[i]
+            )
             model.addConstr(
                 e_batt_to_grid[i]
                 <= self._input.battery.maximum_charge_discharge_capacity

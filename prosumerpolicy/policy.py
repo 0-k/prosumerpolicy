@@ -109,22 +109,18 @@ class Policy:
         return self._calculate_retail_electricity_prices()
 
     def _calculate_electricity_constant(self):
-        total_avg_load = self._input.get_load_list(
-            day=1, duration=8760, load_row=-1
-        )
+        total_avg_load = self._input.get_load_list(day=1, duration=8760, load_row=-1)
         total_price = self._input.get_price_list(day=1, duration=8760)
         c = (
-                    self.electricity_wholesale * sum(total_avg_load)
-                    - np.dot(total_avg_load, total_price)
+            self.electricity_wholesale * sum(total_avg_load)
+            - np.dot(total_avg_load, total_price)
         ) / sum(
             total_avg_load
         )  # constant added of price
         return c
 
     def _calculate_eeg_ratio(self):
-        total_avg_load = self._input.get_load_list(
-            day=1, duration=8760, load_row=-1
-        )
+        total_avg_load = self._input.get_load_list(day=1, duration=8760, load_row=-1)
         total_price = self._input.get_price_list(day=1, duration=8760)
         c = self._calculate_electricity_constant()
         alpha = (
@@ -145,7 +141,7 @@ class Policy:
         if self.is_vfit:
             logging.warning(" Variable FIT Set")
             self.__FIT = self._beta * (
-                    self._input.get_price_list() + self._c
+                self._input.get_price_list() + self._c
             )  # coefficient obtained by dividing total feed in remuneration to realtime prices times production
             self.__FIT = np.array(self.__FIT)
         else:
@@ -157,7 +153,7 @@ class Policy:
         parameters_policy = parameters["policy"]
         if self.is_vfit and self.is_rtp:
             self._component_levy_fit = self._alpha * (
-                    self._input.get_price_list() + self._c
+                self._input.get_price_list() + self._c
             )  # 2.3 calculated by dividing total eeg umlage by realtime prices and load
         if self.is_fixed_network_charges:
             self.network_charge = float(
