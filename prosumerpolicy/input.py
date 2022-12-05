@@ -1,9 +1,9 @@
 import numpy as np
-from prosumerpolicy.pv import PV
+import pandas as pd
+
 from prosumerpolicy.battery import Battery
 from prosumerpolicy.paths import *
-import pandas as pd
-import logging
+from prosumerpolicy.pv import PV
 
 
 class _Input:

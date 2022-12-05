@@ -1,0 +1,7 @@
+numpy
+pandas
+gurobipy
+pyyaml
+
+# for example:
+matplotlib

@@ -1,7 +1,7 @@
-import os.path
 import logging
-import yaml
+import os.path
 
+import yaml
 
 """ Sets the Paths of the input data """
 
@@ -32,7 +32,7 @@ def gen_path(path):
 def read_parameters(path):
     with open(path, "r") as stream:
         try:
-            parameters = yaml.load(stream)
+            parameters = yaml.safe_load(stream)
             return parameters
         except yaml.YAMLError as exc:
             print("I/O Error, Unable to retrieve data from {}".format(path))

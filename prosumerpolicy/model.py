@@ -1,8 +1,10 @@
 import warnings
+
 import numpy as np
-from prosumerpolicy.optimization import _Optimization
-from prosumerpolicy.input import _Input
+
 from prosumerpolicy.economics import Economics
+from prosumerpolicy.input import _Input
+from prosumerpolicy.optimization import _Optimization
 from prosumerpolicy.policy import Policy
 
 
